@@ -164,13 +164,13 @@ stats "0..1" --> "0..*" user : track
 
 review "1" --> "1" book : concerns
 
-style baseModel
-style superAdmin
-style admin
-style author
-style user
-style book
-style review
-style event
-style stats
+%% style baseModel
+%% style superAdmin
+%% style admin
+%% style author
+%% style user
+%% style book
+%% style review
+%% style event
+%% style stats
 ```
