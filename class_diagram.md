@@ -6,7 +6,7 @@ class baseModel{
 +created at : time
 +updated at : time
 }
-class SuperAdmin{
+class superAdmin{
 +id
 +name
 #password
@@ -86,7 +86,7 @@ class user{
 ~def update_review()
 ~def delete_review()
 }
-class stat{
+class stats{
 +id
 +trafic
 +book_bought
@@ -131,4 +131,46 @@ class review{
 ~def delete_review()
 ~def list_review_by_book()
 }
+baseModel --|> superAdmin : Inheritance
+baseModel --|> admin : Inheritance
+baseModel --|> author : Inheritance
+baseModel --|> user : Inheritance
+baseModel --|> book : Inheritance
+baseModel --|> stats : Inheritance
+baseModel --|> event : Inheritance
+baseModel --|> review : Inheritance
+
+superAdmin "1" --> "0..*" admin : manages
+admin "1" --> "0..*" user : creates
+admin "1" --> "0..*" author : creates
+admin "1" --> "0..*" book : manages
+admin "1" --> "0..*" event : manages
+admin "1" --> "0..*" review : manages
+
+author "1" --> "0..*" book : writes
+author "1" --> "0..*" event : organizes
+author "1" --> "0..*" review : writes
+
+user "1" --> "0..*" review : writes
+user "1" --> "0..*" event : joins
+user "1" --> "0..*" book : owns
+
+book "1" --> "1" author : written by
+book "1" --> "0..1" stats : tracked by
+
+stats "0..1" --> "0..*" author : track
+stats "0..1" --> "0..*" book : track
+stats "0..1" --> "0..*" user : track
+
+review "1" --> "1" book : concerns
+
+style baseModel
+style superAdmin
+style admin
+style author
+style user
+style book
+style review
+style event
+style stats
 ```
