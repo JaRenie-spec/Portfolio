@@ -1,144 +1,154 @@
 ```mermaid
 classDiagram
 direction TB
-class baseModel{
--id : str
-+created at : time
-+updated at : time
+
+class baseModel {
+  - id : String
+  + createdAt : Date
+  + updatedAt : Date
 }
-class superAdmin{
-+id
-+name
-#password
-~def create_admin()
-~def update_admin()
-~def delete_admin()
+
+class superAdmin {
+  + id : String
+  + name : String
+  # password : String
+  ~ createAdmin()
+  ~ updateAdmin()
+  ~ deleteAdmin()
 }
-class admin{
-+id
-+name
-#password
-~def create_user()
-~def update_user()
-~def delete_user()
-~def create_author()
-~def update_author()
-~def delete_author()
-~def create_modo()
-~def update_modo()
-~def delete_modo()
-~def create_book()
-~def update_book()
-~def delete_book()
-~def create_event()
-~def update_event()
-~def delete_event()
-~def create_review()
-~def update_review()
-~def delete_review()
-~def view_stats()
-~def list_author()
-~def list_book()
-~def list_user()
-~def list_review()
-~def list_book_owned_by_user()
-~def list_book_owned_by_author()
+
+class admin {
+  + id : String
+  + name : String
+  # password : String
+  ~ createUser()
+  ~ updateUser()
+  ~ deleteUser()
+  ~ createAuthor()
+  ~ updateAuthor()
+  ~ deleteAuthor()
+  ~ createModo()
+  ~ updateModo()
+  ~ deleteModo()
+  ~ createBook()
+  ~ updateBook()
+  ~ deleteBook()
+  ~ createEvent()
+  ~ updateEvent()
+  ~ deleteEvent()
+  ~ createReview()
+  ~ updateReview()
+  ~ deleteReview()
+  ~ viewStats()
+  ~ listAuthor()
+  ~ listBook()
+  ~ listUser()
+  ~ listReview()
+  ~ listBookOwnedByUser()
+  ~ listBookOwnedByAuthor()
 }
-class author{
-+id
-+first name
-+last name
-+pseudo
-+email
-#password
-+achat
-+favoris
-+bio
-+link
-~def create_author()
-~def update_author()
-~def delete_author()
-~def list_author()
-~def list_book()
-~def view_stats()
-~def create_event()
-~def create_news()
-~def list_owned_book()
-~def create_review()
-~def update_review()
-~def delete_review()
+
+class author {
+  + id : String
+  + firstName : String
+  + lastName : String
+  + pseudo : String
+  + email : String
+  # password : String
+  + achat : Array
+  + favoris : Array
+  + bio : String
+  + link : String
+  ~ createAuthor()
+  ~ updateAuthor()
+  ~ deleteAuthor()
+  ~ listAuthor()
+  ~ listBook()
+  ~ viewStats()
+  ~ createEvent()
+  ~ createNews()
+  ~ listOwnedBook()
+  ~ createReview()
+  ~ updateReview()
+  ~ deleteReview()
 }
-class user{
-+id
-+first name
-+last name
-+email
-#password
-+achat
-+favoris
-~def create_user()
-~def update_user()
-~def delete_user()
-~def list_author()
-~def list_book()
-~def list_owned_book()
-~def create_review()
-~def update_review()
-~def delete_review()
+
+class user {
+  + id : String
+  + firstName : String
+  + lastName : String
+  + email : String
+  # password : String
+  + achat : Array
+  + favoris : Array
+  ~ createUser()
+  ~ updateUser()
+  ~ deleteUser()
+  ~ listAuthor()
+  ~ listBook()
+  ~ listOwnedBook()
+  ~ createReview()
+  ~ updateReview()
+  ~ deleteReview()
 }
-class stats{
-+id
-+trafic
-+book_bought
-+incomes
-~def get_incomes()
-~def get_trafic()
-~def get_book_bought()
+
+class stats {
+  + id : String
+  + trafic : Number
+  + bookBought : Number
+  + incomes : Number
+  ~ getIncomes()
+  ~ getTrafic()
+  ~ getBookBought()
 }
-class book{
-+id
-+title
-#authorid
-+isbn
-+price
-+description
-+review
-+rating
-+file_url
-~def create_book()
-~def update_book()
-~def delete_book()
+
+class book {
+  + id : String
+  + title : String
+  # authorId : String
+  + isbn : String
+  + price : Number
+  + description : String
+  + review : Array
+  + rating : Number
+  + fileUrl : String
+  ~ createBook()
+  ~ updateBook()
+  ~ deleteBook()
 }
-class event{
-+id
-#authorid
-+title
-+description
-+date_event
-~def create_event()
-~def update_event()
-~def delete_event()
+
+class event {
+  + id : String
+  # authorId : String
+  + title : String
+  + description : String
+  + dateEvent : Date
+  ~ createEvent()
+  ~ updateEvent()
+  ~ deleteEvent()
 }
-class review{
-+id
-#userid
-#authorid
-#bookid
-+comment
-+rating
-~def create_review()
-~def update_review()
-~def delete_review()
-~def list_review_by_book()
+
+class review {
+  + id : String
+  # userId : String
+  # authorId : String
+  # bookId : String
+  + comment : String
+  + rating : Number
+  ~ createReview()
+  ~ updateReview()
+  ~ deleteReview()
+  ~ listReviewByBook()
 }
-baseModel --|> superAdmin : Inheritance
-baseModel --|> admin : Inheritance
-baseModel --|> author : Inheritance
-baseModel --|> user : Inheritance
-baseModel --|> book : Inheritance
-baseModel --|> stats : Inheritance
-baseModel --|> event : Inheritance
-baseModel --|> review : Inheritance
+
+baseModel --|> superAdmin
+baseModel --|> admin
+baseModel --|> author
+baseModel --|> user
+baseModel --|> book
+baseModel --|> stats
+baseModel --|> event
+baseModel --|> review
 
 superAdmin "1" --> "0..*" admin : manages
 admin "1" --> "0..*" user : creates
@@ -163,6 +173,7 @@ stats "0..1" --> "0..*" book : track
 stats "0..1" --> "0..*" user : track
 
 review "1" --> "1" book : concerns
+
 
 %% style baseModel
 %% style superAdmin
