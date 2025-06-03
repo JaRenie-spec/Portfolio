@@ -1,140 +1,132 @@
-# Prisma Postgres Example: Queries, Connection Pooling & Caching
+# Détail complet du fonctionnement du code Prisma (PostgreSQL)
 
-This project contains a sample application demonstrating various capabilities and workflows of [Prisma Postgres](https://prisma.io/data-platform/postgres):
+Ce document explique en détail **le fonctionnement de notre base de données** avec Prisma et PostgreSQL. Il passe en revue chaque **modèle Prisma** que nous avons défini, en expliquant :
 
-- Schema migrations and queries (via [Prisma ORM](https://www.prisma.io/orm))
-- Connection pooling and caching (via [Prisma Accelerate](https://prisma.io/data-platform/accelerate))
+* à quoi sert chaque champ,
+* comment les relations sont construites,
+* et quelle logique métier se cache derrière chaque partie.
 
-## Getting started
+ Les explications sur Prisma sont données au fil des modèles, uniquement pour comprendre ce qu’il fait **dans notre projet**.
 
-### 1. Set up a Prisma Postgres database in Prisma Data Platform
+---
 
-Follow these steps to create your Prisma Postgres database:
+## Modèle `User`
 
-1. Log in to [Prisma Data Platform](https://console.prisma.io/).
-1. In a [workspace](https://www.prisma.io/docs/platform/about#workspace) of your choice, click the **New project** button.
-1. Type a name for your project in the **Name** field, e.g. **hello-ppg**.
-1. In the **Prisma Postgres** section, click the **Get started** button.
-1. In the **Region** dropdown, select the region that's closest to your current location, e.g. **US East (N. Virginia)**.
-1. Click the **Create project** button.
+```prisma
+model User {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
 
-At this point, you'll be redirected to the **Database** page where you will need to wait a few seconds while the status of your database changes from **`PROVISIONING`**, to **`ACTIVATING`** to **`CONNECTED`**.
+  reviews    Review[]
+  purchases  Purchase[]
+  favorites  Favorite[]
 
-Once the green **`CONNECTED`** label appears, your database is ready to use!
+  createdByAdminId Int?
+  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
 
-Then, find your database credentials in the **Set up database access** section, copy the `DATABASE_URL` environment variable and store it securely.
-
-```bash no-copy
-DATABASE_URL=<your-database-url>
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
 ```
 
-> These `DATABASE_URL` environment variable will be required in the next steps.
+**Explication** :
 
-Once that setup process has finished, move to the next step.
+* L’utilisateur a un `id` auto-incrémenté et des champs obligatoires : prénom, nom, email unique, mot de passe.
+* Les relations :
 
-### 2. Download example and install dependencies
+  * `reviews` : toutes les critiques faites par l’utilisateur.
+  * `purchases` : tous les livres qu’il a achetés.
+  * `favorites` : ses favoris.
+* Le champ `createdByAdminId` permet de savoir **quel admin a créé cet utilisateur**. C’est utile dans une logique d’administration centralisée.
 
-Copy the `try-prisma` command that', paste it into your terminal, and execute it:
+Prisma génère automatiquement les bonnes clés étrangères et les contraintes SQL associées.
 
-```terminal
-npx try-prisma@latest \
-  --template databases/prisma-postgres \
-  --name hello-prisma \
-  --install npm
+---
+
+## Modèle `Book`
+
+```prisma
+model Book {
+  id        Int      @id @default(autoincrement())
+  title     String
+  isbn      String   @unique
+  price     Float
+  description String?
+  rating    Float?
+  fileUrl   String
+
+  authorId  Int
+  author    Author   @relation(fields: [authorId], references: [id])
+
+  createdByAdminId Int?
+  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+
+  reviews    Review[]
+  purchases  Purchase[]
+  favorites  Favorite[]
+  stat       Stat?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
 ```
 
-<!-- For reference, this is what the command looks like (note that the `__YOUR_DATABASE_CONNECTION_STRING__` placeholder must be replaced with _your_ actual database connection string):
+**Explication** :
 
-```
-npx try-prisma@latest
-  --template databases/prisma-postgres
-  --connection-string __YOUR_DATABASE_CONNECTION_STRING__
-  --name hello-prisma
-  --install npm
-```
+* `title`, `isbn`, `price`, `fileUrl` sont obligatoires.
+* `isbn` est unique pour éviter les doublons en base.
+* `authorId` est **obligatoire** : chaque livre doit être lié à un auteur.
+* `createdByAdminId` est **optionnel** : si un admin a créé le livre depuis l’interface d’administration, ce champ est rempli. Sinon, l’auteur peut le publier lui-même.
+* `stat` est une relation 1-1 vers les statistiques liées à ce livre.
 
-Your connection string that should replace the `__YOUR_DATABASE_CONNECTION_STRING__` placeholder looks similar to this: `prisma+postgres://accelerate.prisma-data.net/?api_key=ey...`
--->
+---
 
-Navigate into the project directory and (if you haven't done so via the CLI wizard) install dependencies:
+## Exemple de logique métier : éviter les doublons en favoris
 
-```terminal
-cd hello-prisma
-npm install
-```
+```prisma
+model Favorite {
+  id     Int @id @default(autoincrement())
+  bookId Int
+  userId Int
 
-### 3. Set database connection
-
-The connection to your database is configured via environment variables in a `.env` file.
-
-First, rename the existing `.env.example` file to just `.env`:
-
-```terminal
-mv .env.example .env
+  @@unique([bookId, userId])
+}
 ```
 
-Then, find your database credentials in the **Set up database access** section, copy the `DATABASE_URL` environment variable and paste them into the `.env` file.
+Cette contrainte empêche qu’un utilisateur ajoute plusieurs fois le même livre en favori.
 
-For reference, the file should now look similar to this:
-
-```bash
-DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=ey...."
+```ts
+await prisma.favorite.upsert({
+  where: {
+    userId_bookId: {
+      userId: 1,
+      bookId: 2
+    }
+  },
+  update: {},
+  create: {
+    user: { connect: { id: 1 } },
+    book: { connect: { id: 2 } }
+  }
+});
 ```
 
-### 4. Create database tables (with a schema migration)
+**Résultat** : aucun doublon possible, même si un utilisateur clique plusieurs fois.
 
-Next, you need to create the tables in your database. You can do this by creating and executing a schema migration with the following command of the Prisma CLI:
+---
 
-```terminal
-npx prisma migrate dev --name init
+## Prisma (explication rapide)
+
+Prisma est l'outil qui **traduit notre code en requêtes SQL**. Il se base sur un fichier `schema.prisma` où l'on déclare nos modèles. Il génère ensuite un client TypeScript (`@prisma/client`) que l’on utilise dans notre code.
+
+```ts
+const prisma = new PrismaClient();
+const users = await prisma.user.findMany();
 ```
 
-This will map the `User` and `Post` models that are defined in your [Prisma schema](./prisma/schema.prisma) to your database. You can also review the SQL migration that was executed and created the tables in the newly created `prisma/migrations` directory.
-
-### 5. Execute queries with Prisma ORM
-
-The [`src/queries.ts`](./src/queries.ts) script contains a number of CRUD queries that will write and read data in your database. You can execute it by running the following command in your terminal:
-
-```terminal
-npm run queries
-```
-
-Once the script has completed, you can inspect the logs in your terminal or use Prisma Studio to explore what records have been created in the database:
-
-```terminal
-npx prisma studio
-```
-
-### 6. Explore caching with Prisma Accelerate
-
-The [`src/caching.ts`](./src/caching.ts) script contains a sample query that uses [Stale-While-Revalidate](https://www.prisma.io/docs/accelerate/caching#stale-while-revalidate-swr) (SWR) and [Time-To-Live](https://www.prisma.io/docs/accelerate/caching#time-to-live-ttl) (TTL) to cache a database query using Prisma Accelerate. You can execute it as follows:
-
-```terminal
-npm run caching
-```
-
-Take note of the time that it took to execute the query, e.g.:
-
-```terminal
-The query took 2009.2467149999998ms.
-```
-
-Now, run the script again:
-
-```terminal
-npm run caching
-```
-
-You'll notice that the time the query took will be a lot shorter this time, e.g.:
-
-```terminal
-The query took 300.5655280000001ms.
-```
-
-## Next steps
-
-- Check out the [Prisma docs](https://www.prisma.io/docs)
-- [Join our community on Discord](https://pris.ly/discord?utm_source=github&utm_medium=prisma_examples&utm_content=next_steps_section) to share feedback and interact with other users.
-- [Subscribe to our YouTube channel](https://pris.ly/youtube?utm_source=github&utm_medium=prisma_examples&utm_content=next_steps_section) for live demos and video tutorials.
-- [Follow us on X](https://pris.ly/x?utm_source=github&utm_medium=prisma_examples&utm_content=next_steps_section) for the latest updates.
-- Report issues or ask [questions on GitHub](https://pris.ly/github?utm_source=github&utm_medium=prisma_examples&utm_content=next_steps_section).
+Cela exécute un `SELECT * FROM "User";`, mais avec la sécurité d’un ORM (pas d’injection SQL, requêtes typées, etc.).
