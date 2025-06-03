@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SuperAdmin {
+  id        Int     @id @default(autoincrement())
+  name      String
+  password  String
+
+  admins    Admin[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Admin {
+  id        Int     @id @default(autoincrement())
+  name      String
+  password  String
+
+  superAdminId Int?
+  superAdmin   SuperAdmin? @relation(fields: [superAdminId], references: [id])
+
+  createdUsers   User[]
+  createdAuthors Author[]
+  createdBooks   Book[]
+  createdEvents  Event[]
+  createdReviews Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Author {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  pseudo    String
+  email     String   @unique
+  password  String
+  bio       String?
+  link      String?
+
+  books      Book[]
+  events     Event[]
+  reviews    Review[]
+  purchases  Purchase[]
+  favorites  Favorite[]
+
+  createdByAdminId Int?
+  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+
+  reviews    Review[]
+  purchases  Purchase[]
+  favorites  Favorite[]
+
+  createdByAdminId Int?
+  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Book {
+  id        Int      @id @default(autoincrement())
+  title     String
+  isbn      String   @unique
+  price     Float
+  description String?
+  rating    Float?
+  fileUrl   String
+
+  authorId  Int
+  author    Author   @relation(fields: [authorId], references: [id])
+
+  reviews    Review[]
+  purchases  Purchase[]
+  favorites  Favorite[]
+  stat       Stat?
+
+  createdByAdminId Int?
+  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Event {
+  id        Int      @id @default(autoincrement())
+  title     String
+  description String
+  dateEvent DateTime
+
+  authorId  Int
+  author    Author   @relation(fields: [authorId], references: [id])
+
+  createdByAdminId Int?
+  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Review {
+  id        Int     @id @default(autoincrement())
+  comment   String
+  rating    Int
+
+  userId    Int?
+  authorId  Int?
+  bookId    Int
+
+  user      User?   @relation(fields: [userId], references: [id])
+  author    Author? @relation(fields: [authorId], references: [id])
+  book      Book    @relation(fields: [bookId], references: [id])
+
+  createdByAdminId Int?
+  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Purchase {
+  id          Int      @id @default(autoincrement())
+  bookId      Int
+  userId      Int?
+  authorId    Int?
+
+  book        Book     @relation(fields: [bookId], references: [id])
+  user        User?    @relation(fields: [userId], references: [id])
+  author      Author?  @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  bookId    Int
+  userId    Int?
+  authorId  Int?
+
+  book      Book     @relation(fields: [bookId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+  author    Author?  @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Stat {
+  id         Int     @id @default(autoincrement())
+  trafic     Int
+  bookBought Int
+  incomes    Float
+
+  bookId     Int     @unique
+  book       Book    @relation(fields: [bookId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
