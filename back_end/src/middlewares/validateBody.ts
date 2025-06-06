@@ -1,16 +1,20 @@
-import { Request, Response, NextFunction } from 'express';
+import { RequestHandler } from 'express';
 import { ZodSchema } from 'zod';
 
-export const validateBody = (schema: ZodSchema<any>) => {
-	return (req: Request, res: Response, next: NextFunction) => {
-		const result = schema.safeParse(req.body);
-		if (!result.success) {
-			return res.status(400).json({ errors: result.error.format() });
-		}
+/**
+ * Middleware de validation de requête via Zod
+ */
+export const validateBody = (schema: ZodSchema<any>): RequestHandler => {
+  return (req, res, next) => {
+    const result = schema.safeParse(req.body);
 
-		req.body = result.data;
-		next();
-	};
+    if (!result.success) {
+      return void res.status(400).json({ errors: result.error.format() });
+    }
+
+    req.body = result.data;
+    return next();
+  };
 };
 
 /**
