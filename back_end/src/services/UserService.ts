@@ -1,13 +1,13 @@
 import { CreateUserDTO } from '../types/user.types';
 import axios from 'axios';
-
+import { KeycloakTokenResponse } from 'types/keycloak.types';
 /**
  * Service pour gérer les utilisateurs avec Keycloak
  */
 export class UserService {
   async create(data: CreateUserDTO) {
     // 1. Obtenir un token admin depuis Keycloak
-    const tokenRes = await axios.post(
+    const tokenRes = await axios.post<KeycloakTokenResponse>(
       `${process.env.KEYCLOAK_BASE_URL}/realms/master/protocol/openid-connect/token`,
       new URLSearchParams({
         client_id: 'admin-cli',
