@@ -1,16 +1,16 @@
-import { CreateUserDTO } from "../types/user.types";
-import { UpdateUserDTO } from "../types/user.types";
-import { KeycloakTokenResponse } from "types/keycloak.types";
+import { CreateUserDTO, UpdateUserDTO } from "../types/user.types";
+import { KeycloakTokenResponse } from "../types/keycloak.types";
 import axios from "axios";
+
 /**
  * Service pour gérer les utilisateurs avec Keycloak
  * Axios est une bibliothèques qui permet de faire des requêtes HTTP ( GET, POST, PUT, DELETE ) simplement.
  * Elle est utiliser pour communiquer avec des API, récupérer des données ou en envoyer :D
  * Le payload désigne les données envoyées dans une requête HTTP
  */
+
 export class UserService {
   async create(data: CreateUserDTO) {
-    // 1. Obtenir un token admin depuis Keycloak
     const tokenRes = await axios.post<KeycloakTokenResponse>(
       `${process.env.KEYCLOAK_BASE_URL}/realms/master/protocol/openid-connect/token`,
       new URLSearchParams({
@@ -24,7 +24,6 @@ export class UserService {
 
     const accessToken = tokenRes.data.access_token;
 
-    // 2. Créer l'utilisateur dans Keycloak
     await axios.post(
       `${process.env.KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users`,
       {
@@ -49,10 +48,7 @@ export class UserService {
       }
     );
 
-    return {
-      email: data.email,
-      message: "Utilisateur créé dans Keycloak",
-    };
+    return { email: data.email, message: "Utilisateur créé dans Keycloak" };
   }
 
   async update(id: string, data: UpdateUserDTO) {
@@ -103,8 +99,6 @@ export class UserService {
       );
     }
 
-    return {
-      message: "Utilisateur mis à jour avec succès !",
-    };
+    return { message: "Utilisateur mis à jour avec succès" };
   }
 }
