@@ -1,22 +1,43 @@
-import { Request, Response } from 'express';
-import { CreateUserDTO } from '../types/user.types';
-import { UserService } from '../services/UserService';
+import { Response } from "express";
+import { UserService } from "../services/UserService";
+import { AuthenticatedRequest } from "../middlewares/protect";
 
 const userService = new UserService();
 
-export const createUser = async (req: Request, res: Response) => {
-	const data = req.body as CreateUserDTO;
-	const user = await userService.create(data);
-	res.status(201).json(user);
+export const createUser = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const result = await userService.create(req.body);
+    return void res.status(201).json(result);
+  } catch (error) {
+    return void res.status(500).json({ error: "Erreur lors de la création" });
+  }
 };
 
-export const updateUser = async (req: Request, res: Response) => {
-	try {
-		const userId = req.params.id; // récupère l'ID depuis l'URL
-		const updatedUser = await userService.update(userId, req.body);
-		return res.status(200).json(updatedUser);
-	} catch (error) {
-		console.error(error);
-		return res.status(500).json({ error: 'Erreur lors de la mise à jour' });
-	}
+export const updateUser = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const result = await userService.update(userId, req.body);
+    return void res.status(200).json(result);
+  } catch (error) {
+    return void res
+      .status(500)
+      .json({ error: "Erreur lors de la mise à jour" });
+  }
+};
+
+export const updateOwnProfile = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const userId = req.user?.sub;
+    if (!userId) return void res.status(401).json({ error: "Non autorisé" });
+
+    const result = await userService.update(userId, req.body);
+    return void res.status(200).json(result);
+  } catch (error) {
+    return void res
+      .status(500)
+      .json({ error: "Erreur lors de la mise à jour du profil" });
+  }
 };
