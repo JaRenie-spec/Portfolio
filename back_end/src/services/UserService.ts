@@ -101,4 +101,30 @@ export class UserService {
 
     return { message: "Utilisateur mis à jour avec succès" };
   }
+
+  async delete(id: string) {
+    const tokenRes = await axios.post<KeycloakTokenResponse>(
+      `${process.env.KEYCLOAK_BASE_URL}/realms/master/protocol/openid-connect/token`,
+      new URLSearchParams({
+        client_id: 'admin-cli',
+        grant_type: 'password',
+        username: process.env.KEYCLOAK_ADMIN_USER!,
+        password: process.env.KEYCLOAK_ADMIN_PASS!,
+      }),
+      { headers: { 'Content-type': 'application/x-www-form-urlencoded' } }
+    );
+
+    const accessToken = tokenRes.data.access_token;
+
+    await axios.delete(
+      `${process.env.KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    return { message: 'Utilisateur supprimé avec succès' };
+  }
 }
