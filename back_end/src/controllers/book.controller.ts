@@ -11,87 +11,128 @@ import {
 } from "../services/book.service";
 import path from "path";
 
-export const createBookHandler = async (req: Request, res: Response) => {
+export const createBookHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const book = await createBook(req.body);
     res.status(201).json({ success: true, data: book });
-  } catch (err) {
-    console.error("Erreur création livre:", err);
+  } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-export const getAllBooksHandler = async (_req: Request, res: Response) => {
+export const getAllBooksHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const books = await getAllBooks();
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const minPrice = req.query.minPrice
+      ? Number(req.query.minPrice)
+      : undefined;
+    const maxPrice = req.query.maxPrice
+      ? Number(req.query.maxPrice)
+      : undefined;
+    const minRating = req.query.minRating
+      ? Number(req.query.minRating)
+      : undefined;
+
+    const books = await getAllBooks({
+      page,
+      limit,
+      minPrice,
+      maxPrice,
+      minRating,
+    });
     res.status(200).json({ success: true, data: books });
-  } catch (err) {
-    console.error("Erreur récupération livres:", err);
+  } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-export const getBookByIdHandler = async (req: Request, res: Response) => {
+export const getBookByIdHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     const book = await getBookById(id);
     res.status(200).json({ success: true, data: book });
-  } catch (err) {
+  } catch (err: any) {
     const status = err.message === "Livre non trouvé" ? 404 : 500;
     res.status(status).json({ success: false, error: err.message });
   }
 };
 
-export const updateBookHandler = async (req: Request, res: Response) => {
+export const updateBookHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     const book = await updateBook(id, req.body);
     res.status(200).json({ success: true, data: book });
-  } catch (err) {
-    console.error("Erreur mise à jour livre:", err);
+  } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-export const deleteBookHandler = async (req: Request, res: Response) => {
+export const deleteBookHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
     await deleteBook(id);
     res.status(204).send();
-  } catch (err) {
-    console.error("Erreur suppression livre:", err);
+  } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-export const searchBooksByTitleHandler = async (req: Request, res: Response) => {
+export const searchBooksByTitleHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const title = req.query.title as string;
+    const title = String(req.query.title || "");
     const books = await searchBooksByTitle(title);
     res.status(200).json({ success: true, data: books });
-  } catch (err) {
+  } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-export const searchBooksByAuthorHandler = async (req: Request, res: Response) => {
+export const searchBooksByAuthorHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const authorId = parseInt(req.params.authorId);
+    const authorId = Number(req.params.authorId);
     const books = await searchBooksByAuthor(authorId);
     res.status(200).json({ success: true, data: books });
-  } catch (err) {
+  } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-export const uploadBookFileHandler = async (req: Request, res: Response) => {
+export const uploadBookFileHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
+    if (!req.file) {
+      res.status(400).json({ success: false, error: "Aucun fichier uploadé." });
+      return;
+    }
     const filePath = path.join("/uploads", req.file.filename);
     const updated = await updateBookFileUrl(id, filePath);
     res.status(200).json({ success: true, data: updated });
-  } catch (err) {
-    console.error("Erreur upload fichier:", err);
+  } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
