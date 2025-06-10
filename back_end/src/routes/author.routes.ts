@@ -7,22 +7,37 @@ import {
   deleteAuthorHandler,
   findAuthorByPseudoHandler,
   findAuthorByEmailHandler,
-  findAuthorsByBookTitleHandler
+  findAuthorsByBookTitleHandler,
 } from "../controllers/author.controller";
+import {
+  validateCreateAuthor,
+  validateUpdateAuthor,
+} from "../middlewares/author.validator";
+import { requireRole } from "../middlewares/requireRole";
 
 const router = Router();
 
-router.post("/authors", createAuthorHandler);           // Créer un auteur
-router.get("/authors", getAllAuthorsHandler);           // Lister tous les auteurs
-router.get("/authors/:id", getAuthorByIdHandler);       // Obtenir un auteur par ID
-router.put("/authors/:id", updateAuthorHandler);        // Mettre à jour un auteur
-router.delete("/authors/:id", deleteAuthorHandler);     // Supprimer (soft) un auteur
-// Recherche par pseudo
-router.get("/authors/pseudo/:pseudo", findAuthorByPseudoHandler);
-// Recherche par email
-router.get("/authors/email/:email", findAuthorByEmailHandler);
-// Recherche par titre de livre
-router.get("/authors/book", findAuthorsByBookTitleHandler);
+/*  /api/authors  (montage dans app.ts) */
+router.post(
+  "/",
+  requireRole(["admin"]),
+  validateCreateAuthor,
+  createAuthorHandler,
+);
 
+router.get("/", getAllAuthorsHandler);
+router.get("/search/book", findAuthorsByBookTitleHandler);
+router.get("/pseudo/:pseudo", findAuthorByPseudoHandler);
+router.get("/email/:email", findAuthorByEmailHandler);
+router.get("/:id", getAuthorByIdHandler);
+
+router.put(
+  "/:id",
+  requireRole(["admin"]),
+  validateUpdateAuthor,
+  updateAuthorHandler,
+);
+
+router.delete("/:id", requireRole(["admin"]), deleteAuthorHandler);
 
 export default router;

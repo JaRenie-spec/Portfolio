@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { CreateAuthorDTO } from "../types/author";
+import { CreateAuthorDTO } from "../types";
 
 const prisma = new PrismaClient();
 
@@ -60,7 +60,10 @@ export const getAuthorById = async (id: number) => {
 };
 
 // 🔹 Mettre à jour un auteur
-export const updateAuthor = async (id: number, data: Partial<CreateAuthorDTO>) => {
+export const updateAuthor = async (
+  id: number,
+  data: Partial<CreateAuthorDTO>
+) => {
   try {
     return await prisma.author.update({
       where: { id },
