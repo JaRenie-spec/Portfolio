@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from 'middlewares/protect';
 
 const reviewService = new ReviewService();
 
-export const createReview = async (req: AuthenticatedRequest, res: Response) => {
+export const createReview = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
 	try {
 		const userId = req.user?.sub;
 
