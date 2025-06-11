@@ -9,7 +9,7 @@ datasource db {
 }
 
 model SuperAdmin {
-  id        Int     @id @default(autoincrement())
+  id        String   @id @default(uuid())
   name      String
   password  String
 
@@ -21,11 +21,11 @@ model SuperAdmin {
 }
 
 model Admin {
-  id        Int     @id @default(autoincrement())
+  id        String   @id @default(uuid())
   name      String
   password  String
 
-  superAdminId Int?
+  superAdminId  String?
   superAdmin   SuperAdmin? @relation(fields: [superAdminId], references: [id])
 
   createdUsers   User[]
@@ -40,7 +40,7 @@ model Admin {
 }
 
 model Author {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   firstName String
   lastName  String
   pseudo    String
@@ -55,7 +55,7 @@ model Author {
   purchases  Purchase[]
   favorites  Favorite[]
 
-  createdByAdminId Int?
+  createdByAdminId  String?
   createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
 
   createdAt DateTime @default(now())
@@ -64,7 +64,7 @@ model Author {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   firstName String
   lastName  String
   email     String   @unique
@@ -74,7 +74,7 @@ model User {
   purchases  Purchase[]
   favorites  Favorite[]
 
-  createdByAdminId Int?
+  createdByAdminId  String?
   createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
 
   createdAt DateTime @default(now())
@@ -83,7 +83,7 @@ model User {
 }
 
 model Book {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   title     String
   isbn      String   @unique
   price     Float
@@ -91,7 +91,7 @@ model Book {
   rating    Float?
   fileUrl   String
 
-  authorId  Int
+  authorId  String
   author    Author   @relation(fields: [authorId], references: [id])
 
   reviews    Review[]
@@ -99,7 +99,7 @@ model Book {
   favorites  Favorite[]
   stat       Stat?
 
-  createdByAdminId Int?
+  createdByAdminId  String?
   createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
 
   createdAt DateTime @default(now())
@@ -108,15 +108,15 @@ model Book {
 }
 
 model Event {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   title     String
   description String
   dateEvent DateTime
 
-  authorId  Int
+  authorId  String
   author    Author   @relation(fields: [authorId], references: [id])
 
-  createdByAdminId Int?
+  createdByAdminId  String?
   createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
 
   createdAt DateTime @default(now())
@@ -125,19 +125,19 @@ model Event {
 }
 
 model Review {
-  id        Int     @id @default(autoincrement())
+  id        String   @id @default(uuid())
   comment   String
   rating    Int
 
-  userId    Int?
-  authorId  Int?
-  bookId    Int
+  userId    String?
+  authorId  String?
+  bookId    String
 
   user      User?   @relation(fields: [userId], references: [id])
   author    Author? @relation(fields: [authorId], references: [id])
   book      Book    @relation(fields: [bookId], references: [id])
 
-  createdByAdminId Int?
+  createdByAdminId  String?
   createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
 
   createdAt DateTime @default(now())
@@ -146,10 +146,10 @@ model Review {
 }
 
 model Purchase {
-  id          Int      @id @default(autoincrement())
-  bookId      Int
-  userId      Int?
-  authorId    Int?
+  id          String   @id @default(uuid())
+  bookId      String
+  userId      String?
+  authorId    String?
 
   book        Book     @relation(fields: [bookId], references: [id])
   user        User?    @relation(fields: [userId], references: [id])
@@ -161,10 +161,10 @@ model Purchase {
 }
 
 model Favorite {
-  id        Int      @id @default(autoincrement())
-  bookId    Int
-  userId    Int?
-  authorId  Int?
+  id        String   @id @default(uuid())
+  bookId    String
+  userId    String?
+  authorId  String?
 
   book      Book     @relation(fields: [bookId], references: [id])
   user      User?    @relation(fields: [userId], references: [id])
@@ -176,13 +176,13 @@ model Favorite {
 }
 
 model Stat {
-  id         Int     @id @default(autoincrement())
+  id         String   @id @default(uuid())
   trafic     Int
   bookBought Int
   incomes    Float
 
-  bookId     Int     @unique
-  book       Book    @relation(fields: [bookId], references: [id])
+  bookId     String   @unique
+  book       Book     @relation(fields: [bookId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
