@@ -8,6 +8,7 @@ export const create: RequestHandler = async (req, res) => {
     const event = await eventService.createEvent(parsed);
     res.status(201).json(event);
   } catch (error: any) {
+    console.error('Error in create:', error); // Log détaillé
     if (error.name === 'ZodError') {
       res.status(400).json({ errors: error.errors });
       return;
@@ -20,30 +21,43 @@ export const getAll: RequestHandler = async (_req, res) => {
   try {
     const events = await eventService.getAllEvents();
     res.status(200).json(events);
-  } catch {
+  } catch (error) {
+    console.error('Error in getAll:', error); // Log détaillé
     res.status(500).json({ error: 'Failed to fetch events' });
   }
 };
 
 export const getById: RequestHandler = async (req, res) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: 'Invalid event ID' });
+    return;
+  }
   try {
-    const event = await eventService.getEventById(Number(req.params.id));
+    const event = await eventService.getEventById(id);
     if (!event) {
       res.status(404).json({ error: 'Event not found' });
       return;
     }
     res.status(200).json(event);
-  } catch {
+  } catch (error) {
+    console.error('Error in getById:', error); // Log détaillé
     res.status(500).json({ error: 'Failed to fetch event' });
   }
 };
 
 export const update: RequestHandler = async (req, res) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: 'Invalid event ID' });
+    return;
+  }
   try {
     const parsed = updateEventSchema.parse(req.body);
-    const event = await eventService.updateEvent(Number(req.params.id), parsed);
+    const event = await eventService.updateEvent(id, parsed);
     res.status(200).json(event);
   } catch (error: any) {
+    console.error('Error in update:', error); // Log détaillé
     if (error.name === 'ZodError') {
       res.status(400).json({ errors: error.errors });
       return;
@@ -53,10 +67,16 @@ export const update: RequestHandler = async (req, res) => {
 };
 
 export const remove: RequestHandler = async (req, res) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: 'Invalid event ID' });
+    return;
+  }
   try {
-    const event = await eventService.softDeleteEvent(Number(req.params.id));
+    const event = await eventService.softDeleteEvent(id);
     res.status(200).json({ message: 'Event deleted', event });
-  } catch {
+  } catch (error) {
+    console.error('Error in remove:', error); // Log détaillé
     res.status(500).json({ error: 'Failed to delete event' });
   }
 };
