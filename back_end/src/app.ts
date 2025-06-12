@@ -1,9 +1,10 @@
 // back/src/app.ts
 import express from 'express';
 import bookRoutes from './routes/book.routes';
-import eventRoutes from './routes/event.routes'; // ← AJOUTE CETTE LIGNE
-import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
+import userRoutes from './routes/user.routes';
+import { userInfo } from 'os';
+import { PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
+// Importe d'autres routes au besoin
 
 const app = express();
 
@@ -30,6 +31,7 @@ const swaggerSpec = swaggerJsdoc({
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
+app.use('/users', userRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/events', eventRoutes); // ← AJOUTE CETTE LIGNE
 
