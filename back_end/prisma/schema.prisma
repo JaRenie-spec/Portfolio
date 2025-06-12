@@ -133,8 +133,8 @@ model Review {
   authorId  String?
   bookId    String
 
-  user      User?   @relation(fields: [userId], references: [id])
-  author    Author? @relation(fields: [authorId], references: [id])
+  user      User   @relation(fields: [userId], references: [id])
+  author    Author @relation(fields: [authorId], references: [id])
   book      Book    @relation(fields: [bookId], references: [id])
 
   createdByAdminId  String?
