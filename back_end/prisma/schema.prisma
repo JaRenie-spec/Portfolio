@@ -131,6 +131,7 @@ model Review {
 
   userId    String
   authorId  String
+
   bookId    String
 
   user      User   @relation(fields: [userId], references: [id])
