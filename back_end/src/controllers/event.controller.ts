@@ -8,7 +8,6 @@ export const create: RequestHandler = async (req, res) => {
     const event = await eventService.createEvent(parsed);
     res.status(201).json(event);
   } catch (error: any) {
-    console.error('Error in create:', error); // Log détaillé
     if (error.name === 'ZodError') {
       res.status(400).json({ errors: error.errors });
       return;
@@ -22,14 +21,14 @@ export const getAll: RequestHandler = async (_req, res) => {
     const events = await eventService.getAllEvents();
     res.status(200).json(events);
   } catch (error) {
-    console.error('Error in getAll:', error); // Log détaillé
+    console.error('Error in getAll:', error);
     res.status(500).json({ error: 'Failed to fetch events' });
   }
 };
 
 export const getById: RequestHandler = async (req, res) => {
-  const id = Number(req.params.id);
-  if (Number.isNaN(id)) {
+  const id = req.params.id;
+  if (!id) {
     res.status(400).json({ error: 'Invalid event ID' });
     return;
   }
@@ -41,14 +40,14 @@ export const getById: RequestHandler = async (req, res) => {
     }
     res.status(200).json(event);
   } catch (error) {
-    console.error('Error in getById:', error); // Log détaillé
+    console.error('Error in getById:', error);
     res.status(500).json({ error: 'Failed to fetch event' });
   }
 };
 
 export const update: RequestHandler = async (req, res) => {
-  const id = Number(req.params.id);
-  if (Number.isNaN(id)) {
+  const id = req.params.id;
+  if (!id) {
     res.status(400).json({ error: 'Invalid event ID' });
     return;
   }
@@ -57,7 +56,6 @@ export const update: RequestHandler = async (req, res) => {
     const event = await eventService.updateEvent(id, parsed);
     res.status(200).json(event);
   } catch (error: any) {
-    console.error('Error in update:', error); // Log détaillé
     if (error.name === 'ZodError') {
       res.status(400).json({ errors: error.errors });
       return;
@@ -67,8 +65,8 @@ export const update: RequestHandler = async (req, res) => {
 };
 
 export const remove: RequestHandler = async (req, res) => {
-  const id = Number(req.params.id);
-  if (Number.isNaN(id)) {
+  const id = req.params.id;
+  if (!id) {
     res.status(400).json({ error: 'Invalid event ID' });
     return;
   }
@@ -76,7 +74,7 @@ export const remove: RequestHandler = async (req, res) => {
     const event = await eventService.softDeleteEvent(id);
     res.status(200).json({ message: 'Event deleted', event });
   } catch (error) {
-    console.error('Error in remove:', error); // Log détaillé
+    console.error('Error in remove:', error);
     res.status(500).json({ error: 'Failed to delete event' });
   }
 };

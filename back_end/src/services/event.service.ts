@@ -15,11 +15,11 @@ export const getAllEvents = async () => {
   return prisma.event.findMany();
 };
 
-export const getEventById = async (id: number) => {
+export const getEventById = async (id: string) => {
   return prisma.event.findUnique({ where: { id } });
 };
 
-export const updateEvent = async (id: number, data: Partial<{
+export const updateEvent = async (id: string, data: Partial<{
   title: string;
   description: string;
   dateEvent: Date;
@@ -29,6 +29,6 @@ export const updateEvent = async (id: number, data: Partial<{
   return prisma.event.update({ where: { id }, data });
 };
 
-export const softDeleteEvent = async (id: number) => {
+export const softDeleteEvent = async (id: string) => {
   return prisma.event.update({ where: { id }, data: { deletedAt: new Date() } });
 };
