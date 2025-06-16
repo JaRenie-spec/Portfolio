@@ -1,18 +1,19 @@
 // back/src/app.ts
 import express from 'express';
-import authorRoutes from "./routes/author.routes";
-//import authRoutes from "./routes/auth.routes";
 
-// Importe d'autres routes au besoin
+import bookRoutes from './routes/book.routes';
+import userRoutes from './routes/user.routes';
+import { userInfo } from 'os';
+import { PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
+
 
 const app = express();
 
 app.use(express.json());
 
 // Routes
-app.use("/api/authors", authorRoutes);
-//app.use("/api/auth", authRoutes);
-
+app.use('/users', userRoutes);
+app.use('/api/books', bookRoutes);
 
 
 export default app;
