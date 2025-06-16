@@ -1,25 +1,32 @@
 import { Response } from 'express';
 import { ReviewService } from '../services/ReviewService';
-import { AuthenticatedRequest } from 'middlewares/protect';
+import { AuthenticatedRequest } from '../middlewares/protect';
 
 const reviewService = new ReviewService();
 
-export const createReview = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+
+export const createReview = async (
+	req: AuthenticatedRequest,
+	res: Response
+): Promise<void> => {
+	const userId = req.user?.sub;
+	if (!userId) {
+		res.status(401).json({ error: 'Unauthorized' });
+		return;
+	}
+	// Récupère l'identifiant de l'utilisateur depuis le token
+	// Si l'utilisateur n'est pas authentifié, on renvoie 401 Non autorisé
+
+
 	try {
-		const userId = req.user?.sub;
-
-		if (!userId) {
-			return void res.status(401).json({ error: 'Non autorisé '});
-		}
-
-		const result = await reviewService.create({
+		const review = await reviewService.create({
 			...req.body,
 			userId,
 		});
-
-		return void res.status(201).json(result);
-	} catch (error) {
-		console.error(error);
-		return void res.status(500).json({ error: 'Erreur lors de la création de la review'});
+		res.status(201).json(review);
+	} catch (err) {
+		console.error('Review creation failed:', err);
+		res.status(500).json({ error: 'Failed to create review' });
 	}
 };
+	// En cas d'erreur, on log l'erreur et on renvoie 500
