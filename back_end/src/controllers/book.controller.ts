@@ -58,7 +58,7 @@ export const getBookByIdHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     const book = await getBookById(id);
     res.status(200).json({ success: true, data: book });
   } catch (err: any) {
@@ -72,7 +72,7 @@ export const updateBookHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     const book = await updateBook(id, req.body);
     res.status(200).json({ success: true, data: book });
   } catch (err: any) {
@@ -85,7 +85,7 @@ export const deleteBookHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     await deleteBook(id);
     res.status(204).send();
   } catch (err: any) {
@@ -98,7 +98,7 @@ export const searchBooksByTitleHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const title = String(req.query.title || "");
+    const title = req.query.title as string;
     const books = await searchBooksByTitle(title);
     res.status(200).json({ success: true, data: books });
   } catch (err: any) {
@@ -111,7 +111,7 @@ export const searchBooksByAuthorHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const authorId = Number(req.params.authorId);
+    const authorId = req.params.authorId;
     const books = await searchBooksByAuthor(authorId);
     res.status(200).json({ success: true, data: books });
   } catch (err: any) {
@@ -124,7 +124,7 @@ export const uploadBookFileHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     if (!req.file) {
       res.status(400).json({ success: false, error: "Aucun fichier uploadé." });
       return;

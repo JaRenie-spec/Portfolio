@@ -66,7 +66,7 @@ export const getAllBooks = async (filters: BookFilters = {}) => {
 };
 
 // Récupération simple
-export const getBookById = async (id: number) => {
+export const getBookById = async (id: string) => {
   try {
     const book = await prisma.book.findFirst({
       where: { id, deletedAt: null },
@@ -88,7 +88,7 @@ export const getBookById = async (id: number) => {
 };
 
 // Mise à jour
-export const updateBook = async (id: number, data: UpdateBookInput) => {
+export const updateBook = async (id: string, data: UpdateBookInput) => {
   try {
     return await prisma.book.update({
       where: { id },
@@ -112,7 +112,7 @@ export const updateBook = async (id: number, data: UpdateBookInput) => {
 };
 
 // Soft delete
-export const deleteBook = async (id: number) => {
+export const deleteBook = async (id: string) => {
   try {
     return prisma.book.update({
       where: { id },
@@ -147,7 +147,7 @@ export const searchBooksByTitle = async (title: string) => {
   }
 };
 
-export const searchBooksByAuthor = async (authorId: number) => {
+export const searchBooksByAuthor = async (authorId: string) => {
   try {
     return prisma.book.findMany({
       where: { deletedAt: null, authorId },
@@ -167,7 +167,7 @@ export const searchBooksByAuthor = async (authorId: number) => {
 };
 
 // Mise à jour du fileUrl
-export const updateBookFileUrl = async (id: number, fileUrl: string) => {
+export const updateBookFileUrl = async (id: string, fileUrl: string) => {
   try {
     return prisma.book.update({
       where: { id },
