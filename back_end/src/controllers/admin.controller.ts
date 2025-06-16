@@ -9,6 +9,7 @@ export const createAdminHandler = async (req: Request, res: Response): Promise<v
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     res.status(500).json({ success: false, error: message });
+		return;
   }
 };
 
@@ -20,6 +21,7 @@ export const getAllAdminsHandler = async (_req: Request, res: Response): Promise
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     res.status(500).json({ success: false, error: message });
+		return;
   }
 };
 
@@ -35,6 +37,7 @@ export const getAdminByIdHandler = async (req: Request, res: Response): Promise<
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     res.status(500).json({ success: false, error: message });
+		return;
   }
 };
 
@@ -46,6 +49,7 @@ export const updateAdminHandler = async (req: Request, res: Response): Promise<v
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     res.status(500).json({ success: false, error: message });
+		return;
   }
 };
 
@@ -57,5 +61,6 @@ export const deleteAdminHandler = async (req: Request, res: Response): Promise<v
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     res.status(500).json({ success: false, error: message });
+		return;
   }
 };
