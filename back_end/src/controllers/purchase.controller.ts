@@ -27,8 +27,8 @@ export const getAll: RequestHandler = async (_req, res) => {
 
 export const getById: RequestHandler = async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
+    const id = req.params.id;
+    if (!id || typeof id !== 'string') {
       res.status(400).json({ error: 'Invalid purchase ID' });
       return;
     }
@@ -45,8 +45,8 @@ export const getById: RequestHandler = async (req, res) => {
 
 export const update: RequestHandler = async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
+    const id = req.params.id;
+    if (!id || typeof id !== 'string') {
       res.status(400).json({ error: 'Invalid purchase ID' });
       return;
     }
@@ -64,8 +64,8 @@ export const update: RequestHandler = async (req, res) => {
 
 export const remove: RequestHandler = async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
+    const id = req.params.id;
+    if (!id || typeof id !== 'string') {
       res.status(400).json({ error: 'Invalid purchase ID' });
       return;
     }
