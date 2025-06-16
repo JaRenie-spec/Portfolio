@@ -2,10 +2,11 @@
 import express from 'express';
 
 import bookRoutes from './routes/book.routes';
+import purchaseRoutes from './routes/purchase.routes';
+// Importe d'autres routes au besoin
 import userRoutes from './routes/user.routes';
 import { userInfo } from 'os';
 import { PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
-
 
 const app = express();
 
@@ -34,6 +35,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Routes
 app.use('/users', userRoutes);
 app.use('/api/books', bookRoutes);
+
+app.use('/purchases', purchaseRoutes);
 app.use('/events', eventRoutes); // ← AJOUTE CETTE LIGNE
 
 
