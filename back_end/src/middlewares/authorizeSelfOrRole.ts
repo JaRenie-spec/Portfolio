@@ -10,7 +10,7 @@ import { Request, Response, NextFunction } from "express";
 export const authorizeSelfOrRole = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const user = req.user;
-    const paramId = Number(req.params.id);
+    const paramId = String(req.params.id);
 
     if (!user) {
       res.status(401).json({ success: false, error: "Non authentifié" });

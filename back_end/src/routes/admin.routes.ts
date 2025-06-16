@@ -16,7 +16,6 @@ import { authorizeSelfOrRole } from "../middlewares/authorizeSelfOrRole";
 
 const router = Router();
 
-/** Création d’un Admin : réservé aux SuperAdmin */
 router.post(
   "/",
   requireAuth,
@@ -24,19 +23,18 @@ router.post(
   validateCreateAdmin,
   createAdminHandler
 );
-
-/** Liste : SuperAdmin uniquement */
-router.get("/", requireAuth, requireRole(["superAdmin"]), getAllAdminsHandler);
-
-/** Détail : self ou SuperAdmin */
+router.get(
+  "/",
+  requireAuth,
+  requireRole(["superAdmin"]),
+  getAllAdminsHandler
+);
 router.get(
   "/:id",
   requireAuth,
   authorizeSelfOrRole(["superAdmin"]),
   getAdminByIdHandler
 );
-
-/** Mise à jour : self ou SuperAdmin */
 router.put(
   "/:id",
   requireAuth,
@@ -44,8 +42,6 @@ router.put(
   validateUpdateAdmin,
   updateAdminHandler
 );
-
-/** Suppression : SuperAdmin uniquement */
 router.delete(
   "/:id",
   requireAuth,
