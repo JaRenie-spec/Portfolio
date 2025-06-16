@@ -5,7 +5,7 @@ import axios from "axios";
 /**
  * Service pour gérer les utilisateurs avec Keycloak
  * Axios est une bibliothèques qui permet de faire des requêtes HTTP ( GET, POST, PUT, DELETE ) simplement.
- * Elle est utiliser pour communiquer avec des API, récupérer des données ou en envoyer :D
+ * Elle est utilisée pour communiquer avec des API, récupérer des données ou en envoyer :D
  * Le payload désigne les données envoyées dans une requête HTTP
  */
 
