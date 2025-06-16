@@ -6,7 +6,7 @@ export const createAuthorSchema = z.object({
   bio: z.string().max(2_000).optional(),
   avatarUrl: z.string().url().optional(),
   website: z.string().url().optional(),
-  createdByAdminId: z.number().int().optional(),
+  createdByAdminId: z.string().optional(),
 });
 
 export const updateAuthorSchema = createAuthorSchema.partial();
