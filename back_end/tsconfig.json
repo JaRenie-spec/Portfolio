@@ -4,7 +4,7 @@
     "outDir": "dist",
     "strict": true,
     "lib": ["esnext"],
-    "typeRoots": ["./src/types", "./node_modules/@types"],
+	"baseUrl": "./src",
     "esModuleInterop": true
   }
 }
