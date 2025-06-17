@@ -124,6 +124,10 @@ router.put('/:id', update);
  *       204:
  *         description: Achat supprimé
  */
+router.post('/', create);
+router.get('/', getAll);
+router.get('/:id', getById);
+router.put('/:id', update);
 router.delete('/:id', remove);
 
 export default router;

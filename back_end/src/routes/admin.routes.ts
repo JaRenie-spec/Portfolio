@@ -10,41 +10,39 @@ import {
   validateCreateAdmin,
   validateUpdateAdmin,
 } from "../middlewares/admin.validator";
-import { requireAuth } from "../middlewares/requireAuth";
-import { requireRole } from "../middlewares/requireRole";
-import { authorizeSelfOrRole } from "../middlewares/authorizeSelfOrRole";
+import { requireRole } from "middlewares/requireRole";
 
 const router = Router();
 
 router.post(
   "/",
-  requireAuth,
+  requireRole(["admin"]),
   requireRole(["superAdmin"]),
   validateCreateAdmin,
   createAdminHandler
 );
 router.get(
   "/",
-  requireAuth,
+  requireRole(["admin"]),
   requireRole(["superAdmin"]),
   getAllAdminsHandler
 );
 router.get(
   "/:id",
-  requireAuth,
-  authorizeSelfOrRole(["superAdmin"]),
+  requireRole(["admin"]),
+  requireRole(["superAdmin"]),
   getAdminByIdHandler
 );
 router.put(
   "/:id",
-  requireAuth,
-  authorizeSelfOrRole(["superAdmin"]),
+  requireRole(["admin"]),
+  requireRole(["superAdmin"]),
   validateUpdateAdmin,
   updateAdminHandler
 );
 router.delete(
   "/:id",
-  requireAuth,
+  requireRole(["admin"]),
   requireRole(["superAdmin"]),
   deleteAdminHandler
 );
