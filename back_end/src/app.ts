@@ -7,6 +7,8 @@ import purchaseRoutes from './routes/purchase.routes';
 import userRoutes from './routes/user.routes';
 import reviewRoutes from './routes/review.routes';
 import eventRoutes from './routes/event.routes';
+import authorRoutes from './routes/author.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app = express();
 app.use(express.json());
@@ -32,5 +34,7 @@ app.use('/api/books', bookRoutes);
 app.use('/purchases', purchaseRoutes);
 app.use('/events', eventRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/authors', authorRoutes);
+app.use('/admins', adminRoutes);
 
 export default app;
