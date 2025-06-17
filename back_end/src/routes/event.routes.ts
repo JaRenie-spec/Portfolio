@@ -1,40 +1,22 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { Router } from 'express';
+import { validateBody } from '../middlewares/validateBody';
+import { createEventSchema, updateEventSchema } from '../types/event.types';
+import { protect } from '../middlewares/protect';
+import {
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  getEventById,
+  getAllEvents,
+} from '../controllers/event.controller';
 
-interface CreateEventData {
-  title: string;
-  description: string;
-  dateEvent: Date;
-  authorId: string;
-  createdByAdminId?: string;
-}
+const router = Router();
 
-export const createEvent = async (data: CreateEventData): Promise<ReturnType<typeof prisma.event.create>> => {
-  return prisma.event.create({ data });
-};
-export const getAllEvents = async () => {
-  return prisma.event.findMany();
-}
+// Routes pour les événements
+router.post('/', protect, validateBody(createEventSchema), createEvent);
+router.put('/:id', protect, validateBody(updateEventSchema), updateEvent);
+router.delete('/:id', protect, deleteEvent);
+router.get('/:id', getEventById);
+router.get('/', getAllEvents);
 
-export const getEventById = async (id: string) => {
-  return prisma.event.findUnique({ where: { id } });
-};
-
-export const updateEvent = async (
-  id: string,
-  data: Partial<{
-    title: string;
-    description: string;
-    dateEvent: Date;
-    authorId: string;
-    createdByAdminId?: string;
-  }>
-) => {
-  return prisma.event.update({ where: { id }, data });
-};
-
-export const softDeleteEvent = async (id: string) => {
-  return prisma.event.update({ where: { id }, data: { deletedAt: new Date() } });
-};
-
-// export default router; // Uncomment and move this line here if you have a 'router' to export
+export default router;

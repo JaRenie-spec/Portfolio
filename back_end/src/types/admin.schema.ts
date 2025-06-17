@@ -1,4 +1,3 @@
-import e from "express";
 import { z } from "zod";
 
 export const createAdminSchema = z.object({
