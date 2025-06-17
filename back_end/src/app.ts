@@ -1,23 +1,19 @@
-// back/src/app.ts
 import express from 'express';
-import authorRoutes from './routes/author.routes';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+
 import bookRoutes from './routes/book.routes';
 import purchaseRoutes from './routes/purchase.routes';
-// Importe d'autres routes au besoin
 import userRoutes from './routes/user.routes';
+import reviewRoutes from './routes/review.routes';
 import eventRoutes from './routes/event.routes';
-import { userInfo } from 'os';
-import { PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
-
-// Ajout des imports nécessaires pour Swagger
-import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
+import authorRoutes from './routes/author.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app = express();
-
 app.use(express.json());
 
-// 🧩 Configuration Swagger
+// Swagger
 const swaggerSpec = swaggerJsdoc({
   definition: {
     openapi: '3.0.0',
@@ -26,22 +22,18 @@ const swaggerSpec = swaggerJsdoc({
       version: '1.0.0',
       description: 'Documentation Swagger de l’API Admin',
     },
-    servers: [
-      {
-        url: 'http://localhost:3000', // adapte si ton port change
-      },
-    ],
+    servers: [{ url: 'http://localhost:3000' }],
   },
-  apis: ['./src/routes/*.ts'], // ajuste le chemin si tes routes sont ailleurs
+  apis: ['./src/routes/*.ts'],
 });
-
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/users', userRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/purchases', purchaseRoutes);
 app.use('/events', eventRoutes);
-app.use('/author', authorRoutes);
-
+app.use('/api/reviews', reviewRoutes);
+app.use('/authors', authorRoutes);
+app.use('/admins', adminRoutes);
 
 export default app;
