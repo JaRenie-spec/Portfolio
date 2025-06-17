@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import * as eventService from '../services/event.service';
 import { createEventSchema, updateEventSchema } from '../types/event.types';
 
-export const create: RequestHandler = async (req, res) => {
+export const createEvent: RequestHandler = async (req, res) => {
   try {
     const parsed = createEventSchema.parse(req.body);
     const event = await eventService.createEvent(parsed);
@@ -16,7 +16,7 @@ export const create: RequestHandler = async (req, res) => {
   }
 };
 
-export const getAll: RequestHandler = async (_req, res) => {
+export const getAllEvents: RequestHandler = async (_req, res) => {
   try {
     const events = await eventService.getAllEvents();
     res.status(200).json(events);
@@ -26,7 +26,7 @@ export const getAll: RequestHandler = async (_req, res) => {
   }
 };
 
-export const getById: RequestHandler = async (req, res) => {
+export const getEventById: RequestHandler = async (req, res) => {
   const id = req.params.id;
   if (!id) {
     res.status(400).json({ error: 'Invalid event ID' });
@@ -45,7 +45,7 @@ export const getById: RequestHandler = async (req, res) => {
   }
 };
 
-export const update: RequestHandler = async (req, res) => {
+export const updateEvent: RequestHandler = async (req, res) => {
   const id = req.params.id;
   if (!id) {
     res.status(400).json({ error: 'Invalid event ID' });
@@ -64,7 +64,7 @@ export const update: RequestHandler = async (req, res) => {
   }
 };
 
-export const remove: RequestHandler = async (req, res) => {
+export const deleteEvent: RequestHandler = async (req, res) => {
   const id = req.params.id;
   if (!id) {
     res.status(400).json({ error: 'Invalid event ID' });
