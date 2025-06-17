@@ -1,17 +1,17 @@
-# Utilise une image Node
-FROM node:20
-
-# Crée un dossier de travail dans le conteneur
+FROM node:20 AS builder
 WORKDIR /app
-
-# Copie les fichiers de dépendances
-COPY package*.json ./
-
 # Installe les dépendances
+COPY package*.json ./
 RUN npm install
-
-# Copie tout le reste (code source, fichiers Prisma, etc.)
+# Copie le code et build (TypeScript)
 COPY . .
-
-# Par défaut ne fait rien (défini dans docker-compose)
-CMD ["sh"]
+RUN npm run build   # tu dois avoir un script "build" dans package.json pour compiler TS
+# Image finale
+FROM node:20
+WORKDIR /app
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+EXPOSE 3000
+# Lance l'application compilée
+CMD ["node", "dist/app.js"]

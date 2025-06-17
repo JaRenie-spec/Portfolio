@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   postgres:
     image: postgres:15
@@ -11,18 +12,22 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
-
   app:
     build: .
     container_name: my-app
-    volumes:
-      - .:/app
-    working_dir: /app
+    ports:
+      - "3000:3000"                     # expose ton API (+ /api-docs)
     depends_on:
       - postgres
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/mydb
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mydb
+      KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASS: ${KEYCLOAK_ADMIN_PASS}
+    volumes:
+      - .:/app
+    working_dir: /app
     command: sh -c "npx prisma migrate dev --name init && npm run dev"
-
 volumes:
   pgdata:
