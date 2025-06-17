@@ -10,40 +10,35 @@ import {
   validateCreateAdmin,
   validateUpdateAdmin,
 } from "../middlewares/admin.validator";
-import { requireRole } from "middlewares/requireRole";
+import { requireRole } from "../middlewares/requireRole";
 
 const router = Router();
 
 router.post(
   "/",
-  requireRole(["admin"]),
-  requireRole(["superAdmin"]),
+  requireRole(["admin", "superAdmin"]),
   validateCreateAdmin,
   createAdminHandler
 );
 router.get(
   "/",
-  requireRole(["admin"]),
-  requireRole(["superAdmin"]),
+  requireRole(["admin", "superAdmin"]),
   getAllAdminsHandler
 );
 router.get(
   "/:id",
-  requireRole(["admin"]),
-  requireRole(["superAdmin"]),
+  requireRole(["admin", "superAdmin"]),
   getAdminByIdHandler
 );
 router.put(
   "/:id",
-  requireRole(["admin"]),
-  requireRole(["superAdmin"]),
+  requireRole(["admin", "superAdmin"]),
   validateUpdateAdmin,
   updateAdminHandler
 );
 router.delete(
   "/:id",
-  requireRole(["admin"]),
-  requireRole(["superAdmin"]),
+  requireRole(["admin", "superAdmin"]),
   deleteAdminHandler
 );
 

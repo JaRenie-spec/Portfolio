@@ -1,8 +1,6 @@
 import { Router } from "express";
 import { getAllResourcesHandler } from "../controllers/adminResources.controller";
-import { requireAuth } from "../middlewares/requireAuth";
-import { authorizeSelfOrRole } from "../middlewares/authorizeSelfOrRole";
-
+import { requireRole } from "../middlewares/requireRole";
 const router = Router();
 
 /**
@@ -14,8 +12,7 @@ const router = Router();
  */
 router.get(
   "/:id/resources",
-  requireAuth,
-  authorizeSelfOrRole(["admin", "superAdmin"]),
+  requireRole(["admin", "superAdmin"]),
   getAllResourcesHandler,
 );
 

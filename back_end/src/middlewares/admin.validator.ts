@@ -6,7 +6,7 @@ export const validateCreateAdmin = (req: Request, res: Response, next: NextFunct
     req.body = createAdminSchema.parse(req.body);
     next();
   } catch (err: any) {
-    return res.status(400).json({ success: false, errors: err.errors });
+    res.status(400).json({ success: false, errors: err.errors });
   }
 };
 
@@ -15,6 +15,6 @@ export const validateUpdateAdmin = (req: Request, res: Response, next: NextFunct
     req.body = updateAdminSchema.parse(req.body);
     next();
   } catch (err: any) {
-    return res.status(400).json({ success: false, errors: err.errors });
+    res.status(400).json({ success: false, errors: err.errors });
   }
 };
