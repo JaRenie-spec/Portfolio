@@ -40,7 +40,7 @@ export const getAllAuthors = async () => {
 export const getAuthorById = async (id: number) => {
   try {
     const author = await prisma.author.findFirst({
-      where: { id, deletedAt: null },
+      where: { id: id.toString(), deletedAt: null },
       include: {
         books: true,
         events: true,
@@ -55,7 +55,10 @@ export const getAuthorById = async (id: number) => {
     return author;
   } catch (err) {
     console.error("Erreur récupération auteur par ID :", err);
-    throw new Error(err.message || "Erreur lors de la recherche de l’auteur.");
+    if (err instanceof Error) {
+      throw new Error(err.message || "Erreur lors de la recherche de l’auteur.");
+    }
+    throw new Error("Erreur lors de la recherche de l’auteur.");
   }
 };
 
@@ -66,7 +69,7 @@ export const updateAuthor = async (
 ) => {
   try {
     return await prisma.author.update({
-      where: { id },
+      where: { id: id.toString() },
       data: {
         ...data,
         updatedAt: new Date(),
@@ -82,7 +85,7 @@ export const updateAuthor = async (
 export const deleteAuthor = async (id: number) => {
   try {
     return await prisma.author.update({
-      where: { id },
+      where: { id: id.toString() },
       data: {
         deletedAt: new Date(),
       },
