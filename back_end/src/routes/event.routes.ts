@@ -144,10 +144,7 @@ router.get('/:id', getEventById);
  *       200:
  *         description: Liste des événements
  */
-router.post('/', protect, validateBody(createEventSchema), createEvent);
-router.put('/:id', protect, validateBody(updateEventSchema), updateEvent);
-router.delete('/:id', protect, deleteEvent);
-router.get('/:id', getEventById);
+
 router.get('/', getAllEvents);
 
 export default router;

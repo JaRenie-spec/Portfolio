@@ -1,22 +1,18 @@
 {
-"compilerOptions": {
-"target": "ES2020", // requis pour #private de Prisma
-"module": "CommonJS",
-"lib": ["ES2020"], // évite les erreurs RequestInfo
-"outDir": "dist",
-"rootDir": "src", // où commence ton code source
-"baseUrl": "./src",
-"sourceMap": true,
-"strict": true,
-"esModuleInterop": true,
-"skipLibCheck": true, // pour ignorer les d.ts mal typés dans node_modules
-"forceConsistentCasingInFileNames": true
-},
-"include": ["src//*.ts"],
-"exclude": [
-"node_modules",
-"/.test.ts",
-"src/exemple..ts",
-"src/createbook.ts"
-]
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "rootDir": "src",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "src/exemple.caching.ts",
+    "src/exemple.queries.ts"
+  ]
 }
