@@ -25,8 +25,8 @@ router.get("/pseudo/:pseudo", findAuthorByPseudoHandler);
 router.get("/email/:email", findAuthorByEmailHandler);
 router.get("/:id", getAuthorByIdHandler);
 
-router.put("/:id", requireRole(["admin"]), validateUpdateAuthor, updateAuthorHandler);
+router.put("/:id", requireRole(['admin']), validateUpdateAuthor, updateAuthorHandler);
 
-router.delete("/:id", requireRole(["admin"]), deleteAuthorHandler);
+router.delete("/:id", requireRole(['admin']), deleteAuthorHandler);
 
 export default router;
