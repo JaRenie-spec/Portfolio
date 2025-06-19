@@ -49,12 +49,12 @@ const swaggerSpec = swaggerJsdoc({
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 3) Montage des routes
-app.use('/users', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/books', bookRoutes);
-app.use('/purchases', purchaseRoutes);
-app.use('/events', eventRoutes);
+app.use('/api/purchases', purchaseRoutes);
+app.use('/api/events', eventRoutes);
 app.use('/api/reviews', reviewRoutes);
-app.use('/authors', authorRoutes);
-app.use('/admins', adminRoutes);
+app.use('/api/authors', authorRoutes);
+app.use('/api/admins', adminRoutes);
 
 export default app;

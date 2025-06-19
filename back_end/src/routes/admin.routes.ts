@@ -6,10 +6,6 @@ import {
   updateAdminHandler,
   deleteAdminHandler,
 } from "../controllers/admin.controller";
-import {
-  validateCreateAdmin,
-  validateUpdateAdmin,
-} from "../middlewares/admin.validator";
 import { requireRole } from "../middlewares/requireRole";
 
 const router = Router();
@@ -17,7 +13,6 @@ const router = Router();
 router.post(
   "/",
   requireRole(["admin", "superAdmin"]),
-  validateCreateAdmin,
   createAdminHandler
 );
 router.get(
@@ -33,7 +28,6 @@ router.get(
 router.put(
   "/:id",
   requireRole(["admin", "superAdmin"]),
-  validateUpdateAdmin,
   updateAdminHandler
 );
 router.delete(
