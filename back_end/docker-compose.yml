@@ -45,5 +45,27 @@ services:
         npm run dev
       "
 
+  frontend:
+    build:
+      context: ../front_end/chapter_one
+      dockerfile: Dockerfile
+    container_name: my-frontend
+    ports:
+      - "3001:3000"
+    depends_on:
+      - app
+    env_file:
+      - ../front_end/chapter_one/.env.local
+    environment:
+      NEXT_PUBLIC_API_URL: http://app:3000
+    volumes:
+      - ../front_end/chapter_one:/app
+    working_dir: /app
+    command: >
+      sh -c "
+        echo '🚀 Starting frontend' &&
+        npm run start
+      "
+
 volumes:
   pgdata:
