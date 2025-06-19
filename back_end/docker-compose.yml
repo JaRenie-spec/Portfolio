@@ -61,10 +61,11 @@ services:
     volumes:
       - ../front_end/chapter_one:/app
     working_dir: /app
+    restart: unless-stopped
     command: >
       sh -c "
         echo '🚀 Starting frontend' &&
-        npm run start
+        npm run dev
       "
 
 volumes:

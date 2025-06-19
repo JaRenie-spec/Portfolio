@@ -15,5 +15,4 @@ WORKDIR /app
 # (pas besoin de netcat ici)
 COPY --from=builder /app ./
 
-EXPOSE 3000
-CMD ["npm", "run", "start"]     # next start lancera le build optimisé
+CMD ["npm", "run", "dev"]     # next start lancera le build optimisé
