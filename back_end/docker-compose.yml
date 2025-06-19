@@ -32,44 +32,24 @@ services:
       - "3000:3000"
     depends_on:
       - postgres
-#      - keycloak
     env_file:
       - .env
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      DIRECT_URL:  ${DATABASE_URL}
-      # Pointage vers le service Keycloak interne
-#      KEYCLOAK_BASE_URL: http://keycloak:8080/
-#      KEYCLOAK_REALM:     ${KEYCLOAK_REALM}
-#      KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER}
-#      KEYCLOAK_ADMIN_PASS: ${KEYCLOAK_ADMIN_PASS}
-#      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      DATABASE_URL: ${CONTAINER_DATABASE_URL}
+      DIRECT_URL:  ${CONTAINER_DATABASE_URL}
+      KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
+      KEYCLOAK_REALM:     ${KEYCLOAK_REALM}
+      KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASS: ${KEYCLOAK_ADMIN_PASS}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
     volumes:
       - .:/app
     working_dir: /app
-    command: >
-      sh -c "
-        echo '⏳ Waiting for Postgres…' &&
-        until nc -z postgres 5432; do sleep 1; done &&
-        echo '⏳ Waiting for Keycloak…' &&
-        until nc -z keycloak 8080; do sleep 1; done &&
-        echo '✅ Services prêts, migrations…' &&
-        npx prisma migrate dev --name init &&
-        echo '🚀 Démarrage app en dev' &&
-        npm run dev
-      "
-
-  frontend:
-    build:
-      context: ../front_end/chapter_one
-      dockerfile: Dockerfile
-    container_name: my-frontend
     depends_on:
-      - app
+      - postgres
     environment:
-      NEXT_PUBLIC_API_URL: http://app:3000
-    ports:
-      - "3001:3000"
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/mydb
+    command: sh -c "npx prisma migrate dev --name init && npm run dev"
 
 volumes:
   pgdata:

@@ -1,16 +1,21 @@
-import KcAdminClient from "keycloak-admin";
+import KcAdminClient from '@keycloak/keycloak-admin-client';
 
-const kcAdminClient = new KcAdminClient();
+let kcAdminClient: KcAdminClient | null = null;
 
-export const initKeycloak = async () => {
-  if (!(kcAdminClient as any).authenticated) {
+export async function initKeycloak(): Promise<KcAdminClient> {
+  if (!kcAdminClient) {
+    kcAdminClient = new KcAdminClient({
+      baseUrl:    process.env.KEYCLOAK_BASE_URL,
+      realmName:  process.env.KEYCLOAK_REALM,
+    });
     await kcAdminClient.auth({
-      grantType: "client_credentials",
-      clientId:     process.env.KEYCLOAK_CLIENT_ID!,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
-      realmName:    process.env.KEYCLOAK_REALM!,
+      grantType: 'password',
+      clientId:  process.env.KEYCLOAK_CLIENT_ID!,
+      username:  process.env.KEYCLOAK_ADMIN_USER!,
+      password:  process.env.KEYCLOAK_ADMIN_PASS!,
     });
   }
-};
+  return kcAdminClient;
+}
 
 export default kcAdminClient;
