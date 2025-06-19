@@ -2,28 +2,15 @@ services:
   postgres:
     image: postgres:15
     container_name: my-postgres
-
-#  keycloak:
-#    image: quay.io/keycloak/keycloak:21.1.1
-#    container_name: keycloak
-#    environment:
-      # Utilisateurs admin Keycloak
-#      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
-#      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASS}
-#      # Si tu veux stocker les données Keycloak dans PostgreSQL plutôt que H2
-#      KC_DB: postgres
-#      KC_DB_URL_HOST: postgres
-#      KC_DB_URL_PORT: "5432"
-#      KC_DB_URL_DATABASE: mydb
-#      KC_DB_USERNAME: postgres
-#      KC_DB_PASSWORD: postgres
-#    command:
-#      - start-dev
-#      - --import-realm           # si tu as un export de realm à importer
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
 
   app:
     build: .
@@ -45,11 +32,18 @@ services:
     volumes:
       - .:/app
     working_dir: /app
-    depends_on:
-      - postgres
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/mydb
-    command: sh -c "npx prisma migrate dev --name init && npm run dev"
+    command: >
+      sh -c "
+        echo '⏳ Waiting for Postgres to be ready...' &&
+        until nc -z postgres 5432; do
+          sleep 1;
+          echo 'still waiting...';
+        done &&
+        echo ' Postgres is up - running migrations' &&
+        npx prisma migrate dev --name init &&
+        echo ' Starting app' &&
+        npm run dev
+      "
 
 volumes:
   pgdata:
