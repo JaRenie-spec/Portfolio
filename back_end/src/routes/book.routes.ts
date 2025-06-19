@@ -52,9 +52,14 @@ const upload = multer({ dest: "uploads/" });
  *               authorId:
  *                 type: string
  *                 format: uuid
- *               createdByAdminId:
- *                 type: string
- *                 format: uuid
+ *           example:
+ *             title: "Le Petit Prince"
+ *             isbn: "978-1234567890"
+ *             price: 14.99
+ *             description: "Un conte poétique pour petits et grands"
+ *             rating: 4.8
+ *             fileUrl: "http://example.com/le-petit-prince.pdf"
+ *             authorId: "5f8f8c44-3a6b-4e91-8326-29b7a99e9d9d"
  *     responses:
  *       201:
  *         description: Livre créé
@@ -91,6 +96,7 @@ router.get("/", getAllBooksHandler);
  *         name: title
  *         schema:
  *           type: string
+ *           example: "prince"
  *     responses:
  *       200:
  *         description: Résultats de la recherche
@@ -111,6 +117,7 @@ router.get("/search", searchBooksByTitleHandler);
  *         schema:
  *           type: string
  *           format: uuid
+ *           example: "5f8f8c44-3a6b-4e91-8326-29b7a99e9d9d"
  *     responses:
  *       200:
  *         description: Livres de l’auteur
@@ -131,6 +138,7 @@ router.get("/author/:authorId", searchBooksByAuthorHandler);
  *         schema:
  *           type: string
  *           format: uuid
+ *           example: "c2a6e5d0-44b1-46c5-83b4-90de3c1d4c3a"
  *     responses:
  *       200:
  *         description: Livre trouvé
@@ -151,6 +159,7 @@ router.get("/:id", getBookByIdHandler);
  *         schema:
  *           type: string
  *           format: uuid
+ *           example: "c2a6e5d0-44b1-46c5-83b4-90de3c1d4c3a"
  *     requestBody:
  *       required: true
  *       content:
@@ -175,9 +184,14 @@ router.get("/:id", getBookByIdHandler);
  *               authorId:
  *                 type: string
  *                 format: uuid
- *               createdByAdminId:
- *                 type: string
- *                 format: uuid
+ *           example:
+ *             title: "Le Petit Prince (édition mise à jour)"
+ *             isbn: "978-1234567890"
+ *             price: 16.99
+ *             description: "Version révisée avec illustrations"
+ *             rating: 5
+ *             fileUrl: "http://example.com/le-petit-prince-new.pdf"
+ *             authorId: "5f8f8c44-3a6b-4e91-8326-29b7a99e9d9d"
  *     responses:
  *       200:
  *         description: Livre mis à jour
@@ -203,6 +217,7 @@ router.put(
  *         schema:
  *           type: string
  *           format: uuid
+ *           example: "c2a6e5d0-44b1-46c5-83b4-90de3c1d4c3a"
  *     responses:
  *       204:
  *         description: Livre supprimé
@@ -223,6 +238,7 @@ router.delete("/:id", requireRole(["admin"]), deleteBookHandler);
  *         schema:
  *           type: string
  *           format: uuid
+ *           example: "c2a6e5d0-44b1-46c5-83b4-90de3c1d4c3a"
  *     requestBody:
  *       required: true
  *       content:
@@ -233,6 +249,8 @@ router.delete("/:id", requireRole(["admin"]), deleteBookHandler);
  *               file:
  *                 type: string
  *                 format: binary
+ *             required:
+ *               - file
  *     responses:
  *       200:
  *         description: Fichier uploadé

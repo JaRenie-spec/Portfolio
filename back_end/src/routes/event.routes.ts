@@ -44,8 +44,6 @@ const router = Router();
  *                 type: string
  *                 format: uuid
  *               createdByAdminId:
- *                 type: string
- *                 format: uuid
  *     responses:
  *       201:
  *         description: Événement créé avec succès
@@ -84,8 +82,6 @@ router.post('/', protect, validateBody(createEventSchema), createEvent);
  *               authorId:
  *                 type: string
  *                 format: uuid
- *               createdByAdminId:
- *                 type: string
  *                 format: uuid
  *     responses:
  *       200:
