@@ -44,8 +44,6 @@ const router = Router();
  *                 type: string
  *                 format: uuid
  *               createdByAdminId:
- *                 type: string
- *                 format: uuid
  *     responses:
  *       201:
  *         description: Événement créé avec succès
@@ -84,8 +82,6 @@ router.post('/', protect, validateBody(createEventSchema), createEvent);
  *               authorId:
  *                 type: string
  *                 format: uuid
- *               createdByAdminId:
- *                 type: string
  *                 format: uuid
  *     responses:
  *       200:
@@ -144,10 +140,7 @@ router.get('/:id', getEventById);
  *       200:
  *         description: Liste des événements
  */
-router.post('/', protect, validateBody(createEventSchema), createEvent);
-router.put('/:id', protect, validateBody(updateEventSchema), updateEvent);
-router.delete('/:id', protect, deleteEvent);
-router.get('/:id', getEventById);
+
 router.get('/', getAllEvents);
 
 export default router;

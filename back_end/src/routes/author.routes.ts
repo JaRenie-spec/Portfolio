@@ -9,10 +9,6 @@ import {
   findAuthorByEmailHandler,
   findAuthorsByBookTitleHandler,
 } from "../controllers/author.controller";
-import {
-  validateCreateAuthor,
-  validateUpdateAuthor,
-} from "../middlewares/author.validator";
 import { requireRole } from "../middlewares/requireRole";
 
 const router = Router();
@@ -58,14 +54,11 @@ const router = Router();
  *                 type: string
  *                 maxLength: 2000
  *                 example: Auteur de romans policiers.
- *               createdByAdminId:
- *                 type: string
- *                 example: admin123
  *     responses:
  *       201:
  *         description: Auteur créé avec succès
  */
-router.post("/", requireRole(["admin"]), validateCreateAuthor, createAuthorHandler);
+router.post("/", createAuthorHandler);
 
 /**
  * @openapi
@@ -199,7 +192,7 @@ router.get("/:id", getAuthorByIdHandler);
  *       200:
  *         description: Auteur mis à jour
  */
-router.put("/:id", requireRole(["admin"]), validateUpdateAuthor, updateAuthorHandler);
+router.put("/:id", requireRole(["admin"]), updateAuthorHandler);
 
 /**
  * @openapi

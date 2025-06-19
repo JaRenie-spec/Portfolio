@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:15
@@ -12,22 +11,39 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
+
   app:
     build: .
     container_name: my-app
     ports:
-      - "3000:3000"                     # expose ton API (+ /api-docs)
+      - "3000:3000"
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mydb
+      DATABASE_URL: ${CONTAINER_DATABASE_URL}
+      DIRECT_URL:  ${CONTAINER_DATABASE_URL}
       KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
-      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_REALM:     ${KEYCLOAK_REALM}
       KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER}
       KEYCLOAK_ADMIN_PASS: ${KEYCLOAK_ADMIN_PASS}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
     volumes:
       - .:/app
     working_dir: /app
-    command: sh -c "npx prisma migrate dev --name init && npm run dev"
+    command: >
+      sh -c "
+        echo '⏳ Waiting for Postgres to be ready...' &&
+        until nc -z postgres 5432; do
+          sleep 1;
+          echo 'still waiting...';
+        done &&
+        echo ' Postgres is up - running migrations' &&
+        npx prisma migrate dev --name init &&
+        echo ' Starting app' &&
+        npm run dev
+      "
+
 volumes:
   pgdata:
