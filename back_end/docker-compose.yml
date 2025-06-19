@@ -2,27 +2,74 @@ services:
   postgres:
     image: postgres:15
     container_name: my-postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: mydb
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
+
+#  keycloak:
+#    image: quay.io/keycloak/keycloak:21.1.1
+#    container_name: keycloak
+#    environment:
+      # Utilisateurs admin Keycloak
+#      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
+#      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASS}
+#      # Si tu veux stocker les données Keycloak dans PostgreSQL plutôt que H2
+#      KC_DB: postgres
+#      KC_DB_URL_HOST: postgres
+#      KC_DB_URL_PORT: "5432"
+#      KC_DB_URL_DATABASE: mydb
+#      KC_DB_USERNAME: postgres
+#      KC_DB_PASSWORD: postgres
+#    command:
+#      - start-dev
+#      - --import-realm           # si tu as un export de realm à importer
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - postgres
 
   app:
     build: .
     container_name: my-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+#      - keycloak
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL:  ${DATABASE_URL}
+      # Pointage vers le service Keycloak interne
+#      KEYCLOAK_BASE_URL: http://keycloak:8080/
+#      KEYCLOAK_REALM:     ${KEYCLOAK_REALM}
+#      KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER}
+#      KEYCLOAK_ADMIN_PASS: ${KEYCLOAK_ADMIN_PASS}
+#      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
     volumes:
       - .:/app
     working_dir: /app
+    command: >
+      sh -c "
+        echo '⏳ Waiting for Postgres…' &&
+        until nc -z postgres 5432; do sleep 1; done &&
+        echo '⏳ Waiting for Keycloak…' &&
+        until nc -z keycloak 8080; do sleep 1; done &&
+        echo '✅ Services prêts, migrations…' &&
+        npx prisma migrate dev --name init &&
+        echo '🚀 Démarrage app en dev' &&
+        npm run dev
+      "
+
+  frontend:
+    build:
+      context: ../front_end/chapter_one
+      dockerfile: Dockerfile
+    container_name: my-frontend
     depends_on:
-      - postgres
+      - app
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/mydb
-    command: sh -c "npx prisma migrate dev --name init && npm run dev"
+      NEXT_PUBLIC_API_URL: http://app:3000
+    ports:
+      - "3001:3000"
 
 volumes:
   pgdata:
