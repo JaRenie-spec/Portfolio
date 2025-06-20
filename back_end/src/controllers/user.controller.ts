@@ -1,80 +1,146 @@
-import { Response } from "express";
-import { UserService } from "../services/UserService";
-import { AuthenticatedRequest } from "../middlewares/protect";
-import { RequestHandler } from "express-serve-static-core";
-import { resolve } from "path";
+// FICHIER : src/controllers/user.controller.ts
+import { RequestHandler } from 'express';
+import axios from 'axios';
+import { PrismaClient } from '@prisma/client';
+import { AuthenticatedRequest } from '../middlewares/protect';
 
-const userService = new UserService();
+const prisma = new PrismaClient();
 
-export const createUser: RequestHandler = async (req, res, next): Promise<void> => {
-	try {
-		const result = await userService.create(req.body);
-		res.status(201).json(result);
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la création' });
-	}
-};
+interface KeycloakTokenResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_expires_in: number;
+  token_type: string;
+  scope: string;
+}
+interface KeycloakRole {
+  id: string;
+  name: string;
+}
 
-export const updateUser: RequestHandler = async (req, res, next): Promise<void> => {
-	try {
-		const userId = req.params.id;
-		const result = await userService.update(userId, req.body);
-		res.status(200).json(result);
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la mise à jour ' });
-	}
-};
-
-export const updateOwnProfile: RequestHandler = async (req, res, next): Promise<void> => {
-	const { user } = req as AuthenticatedRequest;
-
-	if (!user?.sub) {
-		res.status(401).json({ error: 'Non autorisé' });
-		return;
-	}
-
-	const userId = user.sub;
-
-	try {
-		const result = await userService.update(userId, req.body);
-		res.status(200).json(result);
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
-	}
-};
-
-export const deleteUser: RequestHandler = async (req, res, next): Promise<void> => {
-	try {
-		const userId = req.params.id;
-		await userService.delete(userId);
-		res.status(200).json({ message: 'Utilisateur supprimé' });
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la suppression' });
-	}
-};
-
-export const deleteOwnAccount: RequestHandler = async (req, res, next): Promise<void> => {
-	const { user } = req as AuthenticatedRequest;
-	if (!user?.sub) {
-		res.status(401).json({ error: 'Non autorisé' });
-		return;
-	}
-
-	const userId = user.sub;
-
-	try {
-		await userService.delete(userId);
-		res.status(200).json({ message: 'Compte supprimé' });
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la suppression de votre compte' });
-	}
+/**
+ * GET /api/users
+ * (superadmin uniquement)
+ */
+export const findAll: RequestHandler = async (_req, res) => {
+  const users = await prisma.user.findMany();
+  res.json(users);
 };
 
 /**
- * On est passés à des handlers async qui retournent toujours void (Promise<void>)
- * pour coller à la signature Express : on n’utilise plus return res… (qui renvoie un Response)
- * mais on fait simplement res.status().json(…) puis on quitte la fonction.
- *
- * On a aussi séparé le check if (!user?.sub) avant de déclarer const userId = user.sub,
- * de sorte que userId est toujours de type string pur et plus string | undefined.
+ * GET /api/users/:id
+ * (admin & superadmin uniquement)
  */
+export const findOne: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) {
+    res.status(404).json({ error: 'Utilisateur non trouvé' });
+    return;
+  }
+  res.json(user);
+};
+
+/**
+ * GET /api/users/me
+ * (utilisateur authentifié)
+ */
+export const me: RequestHandler = async (req, res) => {
+  const sub = (req as AuthenticatedRequest).user.sub;
+  const user = await prisma.user.findUnique({ where: { id: sub } });
+  if (!user) {
+    res.status(404).json({ error: 'Utilisateur non trouvé' });
+    return;
+  }
+  res.json(user);
+};
+
+/**
+ * PUT /api/users/me
+ * (utilisateur authentifié)
+ */
+export const updateMe: RequestHandler = async (req, res) => {
+  const sub = (req as AuthenticatedRequest).user.sub;
+  const { firstName, lastName } = req.body;
+  const user = await prisma.user.update({
+    where: { id: sub },
+    data: { firstName, lastName },
+  });
+  res.json(user);
+};
+
+/**
+ * POST /api/users/become-author
+ * (client uniquement)
+ */
+export const becomeAuthor: RequestHandler = async (req, res) => {
+  try {
+    const { sub, email, username } = (req as AuthenticatedRequest).user;
+
+    // 1) Récupérer un token admin Keycloak
+    const params = new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: process.env.KEYCLOAK_ADMIN_CLI_CLIENT!,
+      client_secret: process.env.KEYCLOAK_ADMIN_PASSWORD!,
+    }).toString();
+
+    const tokenRes = await axios.post<KeycloakTokenResponse>(
+      `${process.env.KEYCLOAK_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
+      params,
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+    const adminToken = tokenRes.data.access_token;
+
+    // 2) Récupérer l’ID du rôle “author”
+    const roleRes = await axios.get<KeycloakRole>(
+      `${process.env.KEYCLOAK_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/roles/author`,
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    const roleId = roleRes.data.id;
+
+    // 3) Assigner le rôle “author” dans Keycloak
+    await axios.post(
+      `${process.env.KEYCLOAK_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${sub}/role-mappings/realm`,
+      [{ id: roleId, name: 'author' }],
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+
+    // 4) Vérifier / créer l’entité Author locale
+    const accountWithAuthor = await prisma.account.findUnique({
+      where: { id: sub },
+      include: { author: true },
+    });
+    let authorRecord = accountWithAuthor?.author;
+    if (!authorRecord) {
+      authorRecord = await prisma.author.create({
+        data: {
+          firstName: '',
+          lastName: '',
+          pseudo: username,
+          email,
+          password: '',
+          account: { connect: { id: sub } },
+        },
+      });
+      await prisma.account.update({
+        where: { id: sub },
+        data: { authorId: authorRecord.id },
+      });
+    }
+
+    res.json({ success: true, authorId: authorRecord.id });
+  } catch (err: any) {
+    console.error('becomeAuthor error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Impossible de devenir auteur' });
+  }
+};
+
+/**
+ * DELETE /api/users/:id
+ * (admin & superadmin uniquement)
+ */
+export const remove: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  await prisma.user.delete({ where: { id } });
+  res.sendStatus(204);
+};
