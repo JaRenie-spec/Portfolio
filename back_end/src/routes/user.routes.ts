@@ -1,170 +1,33 @@
 import { Router } from 'express';
-import { validateBody } from '../middlewares/validateBody';
-import { CreateUserSchema, UpdateUserSchema } from '../types/user.types';
 import { protect } from '../middlewares/protect';
+import { requireRole } from '../middlewares/requireRole';
 import {
-  createUser,
-  updateUser,
-  updateOwnProfile,
-  deleteOwnAccount,
-  deleteUser,
+  findAll,
+  findOne,
+  me,
+  updateMe,
+  becomeAuthor,
+  remove,
 } from '../controllers/user.controller';
 
 const router = Router();
-
 /**
- * @openapi
- * /api/users:
- *   post:
- *     summary: Créer un nouvel utilisateur
- *     tags:
- *       - Users
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - firstName
- *               - lastName
- *               - email
- *               - password
- *             properties:
- *               firstName:
- *                 type: string
- *                 example: Alice
- *               lastName:
- *                 type: string
- *                 example: Durand
- *               email:
- *                 type: string
- *                 format: email
- *                 example: alice.durand@example.com
- *               password:
- *                 type: string
- *                 format: password
- *                 example: motdepasse123
- *     responses:
- *       201:
- *         description: Utilisateur créé avec succès
- *       400:
- *         description: Données invalides
+ * Routes pour la gestion des utilisateurs
+ * - GET /api/users : Liste tous les utilisateurs (superadmin uniquement)
+ * - GET /api/users/:id : Récupère un utilisateur par son ID (admin & superadmin uniquement)
+ * - GET /api/users/me : Récupère les informations de l'utilisateur authentifié
+ * - PUT /api/users/me : Met à jour les informations de l'utilisateur authentifié
+ * - POST /api/users/become-author : Permet à un client de devenir auteur
+ * - DELETE /api/users/:id : Supprime un utilisateur (admin & superadmin uniquement)
  */
-router.post('/', validateBody(CreateUserSchema), createUser);
+router.get('/', protect, requireRole(['superadmin']), findAll);
+router.get('/:id', protect, requireRole(['admin','superadmin']), findOne);
+router.get('/me', protect, me);
 
-/**
- * @openapi
- * /api/users/{id}:
- *   put:
- *     summary: Mettre à jour un utilisateur (admin uniquement)
- *     tags:
- *       - Users
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *                 example: Alice
- *               lastName:
- *                 type: string
- *                 example: Durand
- *               email:
- *                 type: string
- *                 format: email
- *                 example: alice.durand@example.com
- *               password:
- *                 type: string
- *                 format: password
- *                 example: nouveaumdp456
- *     responses:
- *       200:
- *         description: Utilisateur mis à jour
- *       400:
- *         description: Données invalides
- */
-router.put('/:id', validateBody(UpdateUserSchema), updateUser);
+router.put('/me', protect, updateMe);
 
-/**
- * @openapi
- * /api/users/me:
- *   put:
- *     summary: Mettre à jour son propre profil
- *     tags:
- *       - Users
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *                 example: Alice
- *               lastName:
- *                 type: string
- *                 example: Durand
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *                 format: password
- *     responses:
- *       200:
- *         description: Profil mis à jour
- *       401:
- *         description: Non authentifié
- */
-router.put('/me', protect, validateBody(UpdateUserSchema), updateOwnProfile);
+router.post('/become-author', protect, requireRole(['client']), becomeAuthor);
 
-/**
- * @openapi
- * /api/users/{id}:
- *   delete:
- *     summary: Supprimer un utilisateur (admin uniquement)
- *     tags:
- *       - Users
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       204:
- *         description: Utilisateur supprimé
- */
-router.delete('/:id', deleteUser);
-
-/**
- * @openapi
- * /api/users/me:
- *   delete:
- *     summary: Supprimer son propre compte
- *     tags:
- *       - Users
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       204:
- *         description: Compte supprimé
- *       401:
- *         description: Non authentifié
- */
-router.delete('/me', protect, deleteOwnAccount);
+router.delete('/:id', protect, requireRole(['admin','superadmin']), remove);
 
 export default router;
