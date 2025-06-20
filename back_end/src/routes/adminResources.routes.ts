@@ -10,10 +10,6 @@ const router = Router();
  *  - l’Admin dont l’ID est :id
  *  - tout SuperAdmin
  */
-router.get(
-  "/:id/resources",
-  requireRole(["admin", "superAdmin"]),
-  getAllResourcesHandler,
-);
+router.get( "/:id/resources", requireRole(["admin", "superAdmin"]), getAllResourcesHandler);
 
 export default router;
