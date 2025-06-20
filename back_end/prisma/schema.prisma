@@ -1,190 +1,231 @@
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
+// -----------------------------
+// Modèle pivot pour synchroniser
+// Keycloak et entités métier
+// Le modèle Account joue le rôle de base commune (ou base model) pour tous tes types d’utilisateur.
+// -----------------------------
+model Account {
+  id            String      @id                        // UUID Keycloak (sub)
+  email         String      @unique                    // Email récupéré du token
+  username      String                                // Pseudo/utilisateur Keycloak
+  role          String                                // Rôle principal (superadmin, admin, author, client)
+
+  superAdminId  String?     @unique
+  superAdmin    SuperAdmin? @relation(fields: [superAdminId], references: [id])
+
+  adminId       String?     @unique
+  admin         Admin?      @relation(fields: [adminId], references: [id])
+
+  authorId      String?     @unique
+  author        Author?     @relation(fields: [authorId], references: [id])
+
+  userId        String?     @unique
+  user          User?       @relation(fields: [userId], references: [id])
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// =====================
+// Entités métier
+// =====================
+
 model SuperAdmin {
-  id        String   @id @default(uuid())
-  name      String
-  password  String
+  id         String    @id @default(uuid())
+  name       String
+  password   String
 
-  admins    Admin[]
+  // Relation inverse, pas de fields/references ici
+  account    Account?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  admins     Admin[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
 }
 
 model Admin {
-  id        String   @id @default(uuid())
-  name      String
-  password  String
+  id               String       @id @default(uuid())
+  name             String
+  password         String
 
-  superAdminId  String?
-  superAdmin   SuperAdmin? @relation(fields: [superAdminId], references: [id])
+  account          Account?     // Relation inverse
 
-  createdUsers   User[]
-  createdAuthors Author[]
-  createdBooks   Book[]
-  createdEvents  Event[]
-  createdReviews Review[]
+  superAdminId     String?
+  superAdmin       SuperAdmin?  @relation(fields: [superAdminId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdUsers     User[]
+  createdAuthors   Author[]
+  createdBooks     Book[]
+  createdEvents    Event[]
+  createdReviews   Review[]
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
 }
 
 model Author {
-  id        String   @id @default(uuid())
-  firstName String
-  lastName  String
-  pseudo    String
-  email     String   @unique
-  password  String
-  bio       String?
-  link      String?
+  id               String       @id @default(uuid())
+  firstName        String
+  lastName         String
+  pseudo           String
+  email            String       @unique
+  password         String
+  bio              String?
+  link             String?
 
-  books      Book[]
-  events     Event[]
-  reviews    Review[]
-  purchases  Purchase[]
-  favorites  Favorite[]
+  account          Account?     // Relation inverse
 
-  createdByAdminId  String?
-  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+  books            Book[]
+  events           Event[]
+  reviews          Review[]
+  purchases        Purchase[]
+  favorites        Favorite[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdByAdminId String?
+  createdByAdmin   Admin?       @relation(fields: [createdByAdminId], references: [id])
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
 }
 
 model User {
-  id        String   @id @default(uuid())
-  firstName String
-  lastName  String
-  email     String   @unique
-  password  String
+  id               String       @id @default(uuid())
+  firstName        String
+  lastName         String
+  email            String       @unique
+  password         String
 
-  reviews    Review[]
-  purchases  Purchase[]
-  favorites  Favorite[]
+  account          Account?     // Relation inverse
 
-  createdByAdminId  String?
-  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+  reviews          Review[]
+  purchases        Purchase[]
+  favorites        Favorite[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdByAdminId String?
+  createdByAdmin   Admin?       @relation(fields: [createdByAdminId], references: [id])
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
 }
 
 model Book {
-  id        String   @id @default(uuid())
-  title     String
-  isbn      String   @unique
-  price     Float
-  description String?
-  rating    Float?
-  fileUrl   String
+  id               String       @id @default(uuid())
+  title            String
+  isbn             String       @unique
+  price            Float
+  description      String?
+  rating           Float?
+  fileUrl          String
 
-  authorId  String
-  author    Author   @relation(fields: [authorId], references: [id])
+  authorId         String
+  author           Author       @relation(fields: [authorId], references: [id])
 
-  reviews    Review[]
-  purchases  Purchase[]
-  favorites  Favorite[]
-  stat       Stat?
+  reviews          Review[]
+  purchases        Purchase[]
+  favorites        Favorite[]
+  stat             Stat?
 
-  createdByAdminId  String?
-  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+  createdByAdminId String?
+  createdByAdmin   Admin?       @relation(fields: [createdByAdminId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
 }
 
 model Event {
-  id        String   @id @default(uuid())
-  title     String
-  description String
-  dateEvent DateTime
+  id               String       @id @default(uuid())
+  title            String
+  description      String
+  dateEvent        DateTime
 
-  authorId  String
-  author    Author   @relation(fields: [authorId], references: [id])
+  authorId         String
+  author           Author       @relation(fields: [authorId], references: [id])
 
-  createdByAdminId  String?
-  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+  createdByAdminId String?
+  createdByAdmin   Admin?       @relation(fields: [createdByAdminId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
 }
 
 model Review {
-  id        String   @id @default(uuid())
-  comment   String
-  rating    Int
+  id               String       @id @default(uuid())
+  comment          String
+  rating           Int
 
-  userId    String
-  authorId  String
-  bookId    String
+  userId           String
+  authorId         String
+  bookId           String
 
-  user      User   @relation(fields: [userId], references: [id])
-  author    Author @relation(fields: [authorId], references: [id])
-  book      Book    @relation(fields: [bookId], references: [id])
+  user             User         @relation(fields: [userId], references: [id])
+  author           Author       @relation(fields: [authorId], references: [id])
+  book             Book         @relation(fields: [bookId], references: [id])
 
-  createdByAdminId  String?
-  createdByAdmin   Admin? @relation(fields: [createdByAdminId], references: [id])
+  createdByAdminId String?
+  createdByAdmin   Admin?       @relation(fields: [createdByAdminId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
 }
 
 model Purchase {
-  id          String   @id @default(uuid())
-  bookId      String
-  userId      String?
-  authorId    String?
+  id               String       @id @default(uuid())
+  bookId           String
+  userId           String?
+  authorId         String?
 
-  book        Book     @relation(fields: [bookId], references: [id])
-  user        User?    @relation(fields: [userId], references: [id])
-  author      Author?  @relation(fields: [authorId], references: [id])
+  book             Book         @relation(fields: [bookId], references: [id])
+  user             User?        @relation(fields: [userId], references: [id])
+  author           Author?      @relation(fields: [authorId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
 }
 
 model Favorite {
-  id        String   @id @default(uuid())
-  bookId    String
-  userId    String?
-  authorId  String?
+  id               String       @id @default(uuid())
+  bookId           String
+  userId           String?
+  authorId         String?
 
-  book      Book     @relation(fields: [bookId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
-  author    Author?  @relation(fields: [authorId], references: [id])
+  book             Book         @relation(fields: [bookId], references: [id])
+  user             User?        @relation(fields: [userId], references: [id])
+  author           Author?      @relation(fields: [authorId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
 }
 
 model Stat {
-  id         String   @id @default(uuid())
-  trafic     Int
-  bookBought Int
-  incomes    Float
+  id               String       @id @default(uuid())
+  trafic           Int
+  bookBought       Int
+  incomes          Float
 
-  bookId     String   @unique
-  book       Book     @relation(fields: [bookId], references: [id])
+  bookId           String       @unique
+  book             Book         @relation(fields: [bookId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
 }
