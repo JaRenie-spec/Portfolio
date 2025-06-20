@@ -1,49 +1,49 @@
 services:
   postgres:
-    image: postgres:15
-    container_name: my-postgres
-    ports:
-      - "5432:5432"
+    image: postgres:14
     environment:
+      POSTGRES_DB: ebook_store
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: mydb
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
-  app:
-    build: .
-    container_name: my-app
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.0
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/ebook_store
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_IMPORT: /opt/keycloak/data/import/realm-export.json
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ebook_store
+      KEYCLOAK_URL: http://keycloak:8080/auth
+      KEYCLOAK_REALM: ebook-store
+      KEYCLOAK_ADMIN_CLI_CLIENT: admin-cli
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    # ← on retire le volume pour ne pas écraser dist/
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
-    env_file:
-      - .env
-    environment:
-      DATABASE_URL: ${CONTAINER_DATABASE_URL}
-      DIRECT_URL:  ${CONTAINER_DATABASE_URL}
-      KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}
-      KEYCLOAK_REALM:     ${KEYCLOAK_REALM}
-      KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER}
-      KEYCLOAK_ADMIN_PASS: ${KEYCLOAK_ADMIN_PASS}
-      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: >
-      sh -c "
-        echo '⏳ Waiting for Postgres to be ready...' &&
-        until nc -z postgres 5432; do
-          sleep 1;
-          echo 'still waiting...';
-        done &&
-        echo ' Postgres is up - running migrations' &&
-        npx prisma migrate dev --name init &&
-        echo ' Starting app' &&
-        npm run dev
-      "
+      - keycloak
 
 volumes:
-  pgdata:
+  postgres_data:
