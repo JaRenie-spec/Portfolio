@@ -1,36 +1,28 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { RequestHandler } from 'express';
 import { AuthenticatedRequest } from './protect';
 
 /**
- * Middleware générique pour n’autoriser que certains rôles Keycloak.
- * @param roles Liste des rôles autorisés, ex: ['admin', 'superadmin']
- * @returns RequestHandler compatible Express
+ * Ne laisse passer que les utilisateurs qui ont un des rôles autorisés.
+ * Exemple : requireRole(['author', 'admin'])
  */
-export const requireRole = (roles: string[]): RequestHandler => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    // On caste la req pour accéder à user
-    const { user } = req as AuthenticatedRequest;
+export const requireRole = (allowedRoles: string[]): RequestHandler => {
+  return (req, res, next) => {
+    const userReq = req as AuthenticatedRequest;
+    const roles = userReq.user?.roles;
 
-    // 1️⃣ L’utilisateur doit être authentifié
-    if (!user) {
+    // Pas authentifié ?
+    if (!roles) {
       res.status(401).json({ success: false, error: 'Non authentifié' });
       return;
     }
 
-    // 2️⃣ Le rôle doit exister
-    const role = user.role;
-    if (!role) {
-      res.status(403).json({ success: false, error: 'Rôle manquant' });
-      return;
-    }
-
-    // 3️⃣ Le rôle doit être dans la liste
-    if (!roles.includes(role)) {
+    // Vérifier qu'au moins un rôle correspond
+    const hasRole = roles.some(r => allowedRoles.includes(r));
+    if (!hasRole) {
       res.status(403).json({ success: false, error: 'Accès refusé' });
       return;
     }
 
-    // Tout est OK
     next();
   };
 };
