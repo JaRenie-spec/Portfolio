@@ -1,146 +1,24 @@
 import { Router } from 'express';
-import { validateBody } from '../middlewares/validateBody';
-import { createEventSchema, updateEventSchema } from '../types/event.types';
 import { protect } from '../middlewares/protect';
+import { requireRole } from '../middlewares/requireRole';
+import { validateEvent } from '../middlewares/event.validator';
 import {
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  getEventById,
-  getAllEvents,
+  findAll as eventFindAll,
+  findOne as eventFindOne,
+  create as eventCreate,
+  update as eventUpdate,
+  remove as eventRemove
 } from '../controllers/event.controller';
 
 const router = Router();
 
-/**
- * @openapi
- * /events:
- *   post:
- *     summary: Créer un événement
- *     tags:
- *       - Events
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *               - description
- *               - dateEvent
- *               - authorId
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               dateEvent:
- *                 type: string
- *                 format: date-time
- *               authorId:
- *                 type: string
- *                 format: uuid
- *               createdByAdminId:
- *     responses:
- *       201:
- *         description: Événement créé avec succès
- */
-router.post('/', protect, validateBody(createEventSchema), createEvent);
+router.get('/', eventFindAll);
+router.get('/:id', eventFindOne);
 
-/**
- * @openapi
- * /events/{id}:
- *   put:
- *     summary: Mettre à jour un événement
- *     tags:
- *       - Events
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               dateEvent:
- *                 type: string
- *                 format: date-time
- *               authorId:
- *                 type: string
- *                 format: uuid
- *                 format: uuid
- *     responses:
- *       200:
- *         description: Événement mis à jour
- */
-router.put('/:id', protect, validateBody(updateEventSchema), updateEvent);
+router.post('/', protect, requireRole(['author','admin','superadmin']), validateEvent, eventCreate);
 
-/**
- * @openapi
- * /events/{id}:
- *   delete:
- *     summary: Supprimer un événement
- *     tags:
- *       - Events
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       204:
- *         description: Événement supprimé
- */
-router.delete('/:id', protect, deleteEvent);
+router.put('/:id', protect, requireRole(['author','admin','superadmin']), validateEvent, eventUpdate);
 
-/**
- * @openapi
- * /events/{id}:
- *   get:
- *     summary: Obtenir un événement par ID
- *     tags:
- *       - Events
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Détails de l’événement
- */
-router.get('/:id', getEventById);
-
-/**
- * @openapi
- * /events:
- *   get:
- *     summary: Obtenir tous les événements
- *     tags:
- *       - Events
- *     responses:
- *       200:
- *         description: Liste des événements
- */
-
-router.get('/', getAllEvents);
+router.delete('/:id', protect, requireRole(['admin','superadmin']), eventRemove);
 
 export default router;
