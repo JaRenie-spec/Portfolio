@@ -1,49 +1,60 @@
 services:
   postgres:
     image: postgres:14
+    container_name: back_end-postgres
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: ebook_store
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    networks:
+      - back_end-network
 
   keycloak:
     image: quay.io/keycloak/keycloak:25.0.0
+    container_name: back_end-keycloak
     command: start-dev
+    env_file:
+      - .env
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      # Admin console credentials
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_CLI_CLIENT}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Connexion à Postgres
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/ebook_store
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: "5432"
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgres
-      KC_IMPORT: /opt/keycloak/data/import/realm-export.json
-    volumes:
-      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      KC_DB_DATABASE: keycloak
     ports:
       - "8080:8080"
     depends_on:
       - postgres
+    networks:
+      - back_end-network
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      PORT: 3000
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ebook_store
-      KEYCLOAK_URL: http://keycloak:8080/auth
-      KEYCLOAK_REALM: ebook-store
-      KEYCLOAK_ADMIN_CLI_CLIENT: admin-cli
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    # ← on retire le volume pour ne pas écraser dist/
+    container_name: back_end-backend
+    env_file:
+      - .env
     ports:
       - "3000:3000"
+      - "5555:5555"
     depends_on:
-      - keycloak
+      - postgres
+    networks:
+      - back_end-network
 
 volumes:
   postgres_data:
+
+networks:
+  back_end-network:
+    driver: bridge
