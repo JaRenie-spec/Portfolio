@@ -1,14 +1,25 @@
-import { RequestHandler, Request, Response, NextFunction } from 'express';
+/* src/middlewares/protect.ts */
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import jwt, { JwtPayload, JwtHeader } from 'jsonwebtoken';
 import { getPublicKey } from '../utils/getKey';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Interface pour typer req.user
+export interface AuthenticatedRequest extends Request {
+  user: {
+    sub: string;
+    email: string;
+    username: string;
+    roles: string[];
+  };
+}
+
 export const protect: RequestHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
+  req,
+  res,
+  next
 ): Promise<void> => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
@@ -17,7 +28,7 @@ export const protect: RequestHandler = async (
   }
   const token = authHeader.slice('Bearer '.length);
 
-  // 1️⃣ Decode l'en-tête pour lire le kid
+  // 1️⃣ Décodage de l’en-tête pour lire le kid
   const decodedHeader = jwt.decode(token, { complete: true }) as
     | { header: JwtHeader }
     | null;
@@ -26,6 +37,7 @@ export const protect: RequestHandler = async (
     return;
   }
 
+  // Récupération de la clé publique
   let publicKey: string;
   try {
     publicKey = await getPublicKey(decodedHeader.header.kid as string);
@@ -35,7 +47,7 @@ export const protect: RequestHandler = async (
     return;
   }
 
-  // 2️⃣ Vérifie le token avec la clé publique récupérée
+  // 2️⃣ Vérification du token avec la clé publique
   let payload: JwtPayload;
   try {
     payload = jwt.verify(token, publicKey, {
@@ -53,11 +65,11 @@ export const protect: RequestHandler = async (
     res.status(401).json({ error: 'Token sans souscription (sub)' });
     return;
   }
-  const email = (payload.email as string) ?? '';
+  const email   = (payload.email as string) ?? '';
   const username = (payload.preferred_username as string) ?? '';
-  const roles = (payload.realm_access?.roles as string[]) || [];
+  const roles   = (payload.realm_access?.roles as string[]) || [];
   const firstName = (payload.given_name as string) ?? '';
-  const lastName = (payload.family_name as string) ?? '';
+  const lastName  = (payload.family_name as string) ?? '';
 
   // 4️⃣ Synchronisation en base
   try {
@@ -77,8 +89,8 @@ export const protect: RequestHandler = async (
     return;
   }
 
-  // 5️⃣ Injection pour la suite
-  (req as any).user = { sub, email, username, roles };
+  // 5️⃣ Injection typée pour la suite
+  (req as AuthenticatedRequest).user = { sub, email, username, roles };
 
   next();
 };

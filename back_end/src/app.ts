@@ -35,8 +35,6 @@ const swaggerSpec = swaggerJsdoc({
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 🔐 1) Protéger toutes les routes /api/* avec JWT
-app.use('/api', protect);
-
 // 📦 2) Monter chaque router (chacun gère ses propres requireRole)
 app.use('/api/users', userRoutes);
 app.use('/api/authors', authorRoutes);

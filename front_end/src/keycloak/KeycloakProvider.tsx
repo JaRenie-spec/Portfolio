@@ -1,19 +1,38 @@
-import React, { useEffect, useState, ReactNode } from 'react';
-import keycloak from './keycloak';
+import React, { ReactNode, useState, useEffect } from 'react';
+import { ReactKeycloakProvider } from '@react-keycloak/web';
+import keycloak, { initializeKeycloak } from './keycloak';
 
-export const KeycloakProvider = ({ children }: { children: ReactNode }) => {
-  const [ready, setReady] = useState(false);
+interface Props {
+  children: ReactNode;
+}
+
+export const KeycloakProvider: React.FC<Props> = ({ children }) => {
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    keycloak.init({ onLoad: 'login-required' }).then(authenticated => {
-      if (authenticated) {
-        setReady(true);
-      } else {
-        console.warn('Utilisateur non authentifié');
-      }
-    });
+    initializeKeycloak()
+      .then((authenticated) => {
+        setInitialized(true);
+        if (!authenticated) {
+          // si pas authentifié, redirige vers le login
+          keycloak.login();
+        }
+      })
+      .catch((err) => {
+        console.error('Keycloak init failed', err);
+      });
   }, []);
 
-  if (!ready) return <div>Chargement...</div>;
-  return <>{children}</>;
+  if (!initialized) {
+    return <div>Chargement de l’authentification...</div>;
+  }
+
+  return (
+    <ReactKeycloakProvider
+      authClient={keycloak}
+      initOptions={{ onLoad: 'check-sso' }}
+    >
+      {children}
+    </ReactKeycloakProvider>
+  );
 };
