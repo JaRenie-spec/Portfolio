@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { protect } from './middlewares/protect';
 import userRoutes from './routes/user.routes';
 import authorRoutes from './routes/author.routes';
 import bookRoutes from './routes/book.routes';
@@ -34,8 +33,6 @@ const swaggerSpec = swaggerJsdoc({
 });
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// 🔐 1) Protéger toutes les routes /api/* avec JWT
-// 📦 2) Monter chaque router (chacun gère ses propres requireRole)
 app.use('/api/users', userRoutes);
 app.use('/api/authors', authorRoutes);
 app.use('/api/books', bookRoutes);

@@ -8,6 +8,7 @@ import {
   remove,
   findAll,
 } from '../controllers/user.controller';
+import { protect } from '../middlewares/protect';
 
 const router = Router();
 
@@ -15,19 +16,19 @@ const router = Router();
  * 1️⃣ Self-service (tout utilisateur authentifié peut y accéder)
  *    – protect appliqué globalement dans app.ts
  */
-router.get('/me', me);
-router.put('/me', updateMe);
-router.post('/become-author', requireRole(['client']), becomeAuthor);
+router.get('/me', protect, me);
+router.put('/me', protect, updateMe);
+router.post('/become-author', protect, requireRole(['client']), becomeAuthor);
 
 /**
  * 2️⃣ Par ID – réservé aux admin & superadmin
  */
-router.get('/:id', requireRole(['admin', 'superadmin']), findOne);
-router.delete('/:id', requireRole(['admin', 'superadmin']), remove);
+router.get('/:id', protect, requireRole(['admin', 'superadmin']), findOne);
+router.delete('/:id', protect, requireRole(['admin', 'superadmin']), remove);
 
 /**
  * 3️⃣ Liste complète – réservé au superadmin
  */
-router.get('/', requireRole(['superadmin']), findAll);
+router.get('/', protect, requireRole(['superadmin']), findAll);
 
 export default router;

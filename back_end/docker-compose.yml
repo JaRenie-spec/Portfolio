@@ -1,35 +1,32 @@
 services:
   postgres:
     image: postgres:14
-    container_name: back_end-postgres
     env_file:
       - .env
     environment:
-      POSTGRES_DB: ebook_store
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    ports:
+      - "5432:5432"
     networks:
       - back_end-network
 
   keycloak:
-    image: quay.io/keycloak/keycloak:25.0.0
-    container_name: back_end-keycloak
+    image: quay.io/keycloak/keycloak:latest
     command: start-dev
     env_file:
       - .env
     environment:
-      # Admin console credentials
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_CLI_CLIENT}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      # Connexion à Postgres
-      KC_DB: postgres
-      KC_DB_URL_HOST: postgres
-      KC_DB_URL_PORT: "5432"
-      KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: postgres
-      KC_DB_DATABASE: keycloak
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: ${KC_DB}
+      KC_DB_URL: ${KC_DB_URL}
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
@@ -41,14 +38,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: back_end-backend
     env_file:
       - .env
+    environment:
+      - PORT=${PORT}
+      - DATABASE_URL=${CONTAINER_DATABASE_URL}
+      - DIRECT_URL=${CONTAINER_DATABASE_URL}
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
     ports:
       - "3000:3000"
-      - "5555:5555"
     depends_on:
       - postgres
+      - keycloak
     networks:
       - back_end-network
 
