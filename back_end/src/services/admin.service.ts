@@ -1,90 +1,113 @@
-import kcAdminClient, { initKeycloak } from "../utils/keycloak";
-import { CreateAdminInput, UpdateAdminInput } from "../types/admin.schema";
+/* src/services/admin.service.ts */
+import kcAdmin from '../utils/keycloak';
+import type { CreateAdminInput, UpdateAdminInput } from '../types/admin.schema';
 
 const REALM = process.env.KEYCLOAK_REALM!;
 
-export const createAdmin = async (input: CreateAdminInput) => {
-  await initKeycloak();
-
-  // 1) création de l’utilisateur dans Keycloak
-  const { id } = await kcAdminClient.users.create({
-    realm:   REALM,
+/**
+ * Crée un nouvel administrateur et lui assigne le rôle 'admin'
+ */
+export async function createAdmin(
+  input: CreateAdminInput
+): Promise<{ id: string; username: string }> {
+  // Création de l'utilisateur
+  const user = await kcAdmin.users.create({
+    realm: REALM,
     username: input.name,
+    email: input.email,
     enabled: true,
     credentials: [
-      { type: "password", value: input.password, temporary: false }
+      {
+        type: 'password',
+        value: input.password,
+        temporary: false,
+      } as any,
     ],
-    // on peut stocker superAdminId en attribut si besoin
     attributes: input.superAdminId
       ? { createdBy: [input.superAdminId] }
       : undefined,
   });
+  const userId = user.id!;
 
-  // 2) assignation du rôle realm "admin"
-  const realmRole = await kcAdminClient.roles.findOneByName({
-    realm: REALM, name: "admin"
-  });
-  if (realmRole) {
-    await kcAdminClient.users.addRealmRoleMappings({
+  // Assignation du rôle 'admin'
+  const realmRole = await kcAdmin.roles.findOneByName({ realm: REALM, name: 'admin' });
+  if (realmRole?.id && realmRole.name) {
+    await kcAdmin.users.addRealmRoleMappings({
       realm: REALM,
-      id,
+      id: userId,
       roles: [{ id: realmRole.id, name: realmRole.name }],
     });
   }
 
-  return { id, name: input.name };
-};
+  return { id: userId, username: input.name };
+}
 
-export const findAllAdmins = async () => {
-  await initKeycloak();
-  const users = await kcAdminClient.users.find({ realm: REALM, max: 200 });
-  const out = [];
+/**
+ * Récupère tous les administrateurs (utilisateurs ayant le rôle 'admin')
+ */
+export async function findAllAdmins(): Promise<Array<{ id: string; username: string }>> {
+  const users = await kcAdmin.users.find({ realm: REALM, max: 1000 });
+  const admins: Array<{ id: string; username: string }> = [];
+
   for (const u of users) {
-    const roles = await kcAdminClient.users.listRealmRoleMappings({
-      realm: REALM, id: u.id!
-    });
-    if (roles.some(r => r.name === "admin")) {
-      out.push({ id: u.id, name: u.username });
+    const mappings = await kcAdmin.users.listRealmRoleMappings({ realm: REALM, id: u.id! });
+    if (mappings.some((role) => role.name === 'admin')) {
+      admins.push({ id: u.id!, username: u.username! });
     }
   }
-  return out;
-};
 
-export const findAdminById = async (id: string) => {
-  await initKeycloak();
-  const u = await kcAdminClient.users.findOne({ realm: REALM, id });
-  if (!u) return null;
-  const roles = await kcAdminClient.users.listRealmRoleMappings({
-    realm: REALM, id
-  });
-  if (!roles.some(r => r.name === "admin")) return null;
-  return { id: u.id, name: u.username };
-};
+  return admins;
+}
 
-export const updateAdmin = async (id: string, input: UpdateAdminInput) => {
-  await initKeycloak();
+/**
+ * Récupère un administrateur par son ID, ou null si non trouvé / sans rôle 'admin'
+ */
+export async function findAdminById(
+  id: string
+): Promise<{ id: string; username: string } | null> {
+  const user = await kcAdmin.users.findOne({ realm: REALM, id });
+  if (!user) return null;
 
-  // 1) update des champs username / attributs
-  const payload: any = {};
-  if (input.name)         payload.username = input.name;
+  const mappings = await kcAdmin.users.listRealmRoleMappings({ realm: REALM, id });
+  if (!mappings.some((role) => role.name === 'admin')) {
+    return null;
+  }
+
+  return { id, username: user.username! };
+}
+
+/**
+ * Met à jour un administrateur (username, email, attributs, mot de passe)
+ */
+export async function updateAdmin(
+  id: string,
+  input: UpdateAdminInput
+): Promise<{ id: string; username: string }> {
+  const payload: Record<string, any> = {};
+  if (input.name) payload.username = input.name;
+  if (input.email) payload.email = input.email;
   if (input.superAdminId) payload.attributes = { createdBy: [input.superAdminId] };
 
-  await kcAdminClient.users.update({ realm: REALM, id }, payload);
+  await kcAdmin.users.update({ realm: REALM, id }, payload);
 
-  // 2) reset du mot de passe si fourni
   if (input.password) {
-    await kcAdminClient.users.resetPassword(
-      { realm: REALM, id },
-      { type: "password", value: input.password, temporary: false }
+    await kcAdmin.users.resetPassword(
+      { realm: REALM, id } as any,
+      {
+        type: 'password',
+        value: input.password,
+        temporary: false,
+      } as any
     );
   }
 
-  const updated = await kcAdminClient.users.findOne({ realm: REALM, id });
-  return { id, name: updated!.username };
-};
+  const updated = await kcAdmin.users.findOne({ realm: REALM, id });
+  return { id, username: updated!.username! };
+}
 
-export const deleteAdmin = async (id: string) => {
-  await initKeycloak();
-  // suppression Keycloak
-  await kcAdminClient.users.del({ realm: REALM, id });
-};
+/**
+ * Supprime un administrateur
+ */
+export async function deleteAdmin(id: string): Promise<void> {
+  await kcAdmin.users.del({ realm: REALM, id } as any);
+}

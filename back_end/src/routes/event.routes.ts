@@ -1,22 +1,24 @@
 import { Router } from 'express';
-import { validateBody } from '../middlewares/validateBody';
-import { createEventSchema, updateEventSchema } from '../types/event.types';
 import { protect } from '../middlewares/protect';
+import { requireRole } from '../middlewares/requireRole';
+import { validateEvent } from '../middlewares/event.validator';
 import {
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  getEventById,
-  getAllEvents,
+  findAll as eventFindAll,
+  findOne as eventFindOne,
+  create as eventCreate,
+  update as eventUpdate,
+  remove as eventRemove
 } from '../controllers/event.controller';
 
 const router = Router();
 
-// Routes pour les événements
-router.post('/', protect, validateBody(createEventSchema), createEvent);
-router.put('/:id', protect, validateBody(updateEventSchema), updateEvent);
-router.delete('/:id', protect, deleteEvent);
-router.get('/:id', getEventById);
-router.get('/', getAllEvents);
+router.get('/', eventFindAll);
+router.get('/:id', eventFindOne);
+
+router.post('/', protect, requireRole(['author','admin','superadmin']), validateEvent, eventCreate);
+
+router.put('/:id', protect, requireRole(['author','admin','superadmin']), validateEvent, eventUpdate);
+
+router.delete('/:id', protect, requireRole(['admin','superadmin']), eventRemove);
 
 export default router;

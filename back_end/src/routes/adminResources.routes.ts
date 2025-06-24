@@ -1,8 +1,6 @@
 import { Router } from "express";
 import { getAllResourcesHandler } from "../controllers/adminResources.controller";
-import { requireAuth } from "../middlewares/requireAuth";
-import { authorizeSelfOrRole } from "../middlewares/authorizeSelfOrRole";
-
+import { requireRole } from "../middlewares/requireRole";
 const router = Router();
 
 /**
@@ -12,11 +10,6 @@ const router = Router();
  *  - l’Admin dont l’ID est :id
  *  - tout SuperAdmin
  */
-router.get(
-  "/:id/resources",
-  requireAuth,
-  authorizeSelfOrRole(["admin", "superAdmin"]),
-  getAllResourcesHandler,
-);
+router.get( "/:id/resources", requireRole(["admin", "superAdmin"]), getAllResourcesHandler);
 
 export default router;

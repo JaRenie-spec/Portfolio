@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    // ⚙️ Cible et modules modernes pour ESM
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+
+    // 🎨 JSX avec la nouvelle transform React 17+
+    "jsx": "react-jsx",
+
+    // 📚 Librairies disponibles (DOM + ESNext)
+    "lib": ["dom", "esnext"],
+
+    // ✅ Strict mode
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+
+    // 🔄 Permet d’importer des .json si besoin
+    "resolveJsonModule": true,
+
+    // ✨ Ajoute les définitions pour Vite (import.meta.env)
+    "types": ["vite/client"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

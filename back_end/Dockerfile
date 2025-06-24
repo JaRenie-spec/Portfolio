@@ -1,17 +1,15 @@
-# Utilise une image Node
-FROM node:20
+FROM node:18-alpine
 
-# Crée un dossier de travail dans le conteneur
-WORKDIR /app
+RUN apk add --no-cache postgresql-client
 
-# Copie les fichiers de dépendances
+WORKDIR /usr/src/app
 COPY package*.json ./
-
-# Installe les dépendances
 RUN npm install
-
-# Copie tout le reste (code source, fichiers Prisma, etc.)
 COPY . .
+RUN npx prisma generate
+RUN npm run build
 
-# Par défaut ne fait rien (défini dans docker-compose)
-CMD ["sh"]
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
+EXPOSE 3000
+ENTRYPOINT ["./entrypoint.sh"]

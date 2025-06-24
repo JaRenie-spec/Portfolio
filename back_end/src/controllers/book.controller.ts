@@ -1,138 +1,58 @@
-import { Request, Response } from "express";
-import {
-  createBook,
-  getAllBooks,
-  getBookById,
-  updateBook,
-  deleteBook,
-  searchBooksByTitle,
-  updateBookFileUrl,
-  searchBooksByAuthor,
-} from "../services/book.service";
-import path from "path";
+import { RequestHandler } from 'express';
+import { PrismaClient } from '@prisma/client';
 
-export const createBookHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const book = await createBook(req.body);
-    res.status(201).json({ success: true, data: book });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+const prisma = new PrismaClient();
+
+/**
+ * GET /books
+ */
+export const findAll: RequestHandler = async (_req, res) => {
+  const books = await prisma.book.findMany();
+  res.json(books);
 };
 
-export const getAllBooksHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const minPrice = req.query.minPrice
-      ? Number(req.query.minPrice)
-      : undefined;
-    const maxPrice = req.query.maxPrice
-      ? Number(req.query.maxPrice)
-      : undefined;
-    const minRating = req.query.minRating
-      ? Number(req.query.minRating)
-      : undefined;
-
-    const books = await getAllBooks({
-      page,
-      limit,
-      minPrice,
-      maxPrice,
-      minRating,
-    });
-    res.status(200).json({ success: true, data: books });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+/**
+ * GET /books/:id
+ */
+export const findOne: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const book = await prisma.book.findUnique({ where: { id } });
+  if (!book) {
+    res.status(404).json({ error: 'Livre non trouvé' });
+    return;
   }
+  res.json(book);
 };
 
-export const getBookByIdHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const id = req.params.id;
-    const book = await getBookById(id);
-    res.status(200).json({ success: true, data: book });
-  } catch (err: any) {
-    const status = err.message === "Livre non trouvé" ? 404 : 500;
-    res.status(status).json({ success: false, error: err.message });
-  }
+/**
+ * POST /books
+ */
+export const create: RequestHandler = async (req, res) => {
+  const { title, isbn, price, description, rating, fileUrl, authorId } = req.body;
+  const newBook = await prisma.book.create({
+    data: { title, isbn, price, description, rating, fileUrl, authorId }
+  });
+  res.status(201).json(newBook);
 };
 
-export const updateBookHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const id = req.params.id;
-    const book = await updateBook(id, req.body);
-    res.status(200).json({ success: true, data: book });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+/**
+ * PUT /books/:id
+ */
+export const update: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const { title, isbn, price, description, rating, fileUrl, authorId } = req.body;
+  const updated = await prisma.book.update({
+    where: { id },
+    data: { title, isbn, price, description, rating, fileUrl, authorId }
+  });
+  res.json(updated);
 };
 
-export const deleteBookHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const id = req.params.id;
-    await deleteBook(id);
-    res.status(204).send();
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-};
-
-export const searchBooksByTitleHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const title = req.query.title as string;
-    const books = await searchBooksByTitle(title);
-    res.status(200).json({ success: true, data: books });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-};
-
-export const searchBooksByAuthorHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const authorId = req.params.authorId;
-    const books = await searchBooksByAuthor(authorId);
-    res.status(200).json({ success: true, data: books });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-};
-
-export const uploadBookFileHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const id = req.params.id;
-    if (!req.file) {
-      res.status(400).json({ success: false, error: "Aucun fichier uploadé." });
-      return;
-    }
-    const filePath = path.join("/uploads", req.file.filename);
-    const updated = await updateBookFileUrl(id, filePath);
-    res.status(200).json({ success: true, data: updated });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+/**
+ * DELETE /books/:id
+ */
+export const remove: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  await prisma.book.delete({ where: { id } });
+  res.sendStatus(204);
 };

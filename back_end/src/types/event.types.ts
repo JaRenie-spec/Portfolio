@@ -1,17 +1,22 @@
 import { z } from 'zod';
+import { eventSchema } from '../middlewares/event.validator';
 
-export const createEventSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  dateEvent: z.coerce.date(),
-  authorId: z.string().uuid(),
-  createdByAdminId: z.string().uuid().optional(),
-});
+/**
+ * Type des données reçues pour créer ou mettre à jour un Event
+ */
+export type EventInput = z.infer<typeof eventSchema>;
 
-export const updateEventSchema = z.object({
-  title: z.string().min(1).optional(),
-  description: z.string().min(1).optional(),
-  dateEvent: z.coerce.date().optional(),
-  authorId: z.string().uuid().optional(),
-  createdByAdminId: z.string().uuid().optional(),
-});
+/**
+ * Représentation d'un Event tel qu'enregistré en base
+ */
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  dateEvent: Date;
+  authorId: string;
+  createdByAdminId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date | null;
+}

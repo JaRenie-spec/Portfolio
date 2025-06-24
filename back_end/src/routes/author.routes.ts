@@ -1,32 +1,23 @@
-import { Router } from "express";
+import { Router } from 'express';
+import { protect } from '../middlewares/protect';
+import { requireRole } from '../middlewares/requireRole';
 import {
-  createAuthorHandler,
-  getAllAuthorsHandler,
-  getAuthorByIdHandler,
-  updateAuthorHandler,
-  deleteAuthorHandler,
-  findAuthorByPseudoHandler,
-  findAuthorByEmailHandler,
-  findAuthorsByBookTitleHandler,
-} from "../controllers/author.controller";
-import {
-  validateCreateAuthor,
-  validateUpdateAuthor,
-} from "../middlewares/author.validator";
-import { requireRole } from "../middlewares/requireRole";
+  findAll as authorFindAll,
+  findOne as authorFindOne,
+  create as authorCreate,
+  update as authorUpdate,
+  remove as authorRemove
+} from '../controllers/author.controller';
 
 const router = Router();
 
-router.post("/", requireRole(["admin"]), validateCreateAuthor, createAuthorHandler);
+router.get('/', protect, requireRole(['admin', 'superadmin']), authorFindAll);
+router.get('/:id', authorFindOne);
 
-router.get("/", getAllAuthorsHandler);
-router.get("/search/book", findAuthorsByBookTitleHandler);
-router.get("/pseudo/:pseudo", findAuthorByPseudoHandler);
-router.get("/email/:email", findAuthorByEmailHandler);
-router.get("/:id", getAuthorByIdHandler);
+router.post('/', protect, requireRole(['admin', 'superadmin']), authorCreate);
 
-router.put("/:id", requireRole(['admin']), validateUpdateAuthor, updateAuthorHandler);
+router.put('/:id', protect, requireRole(['admin', 'superadmin']), authorUpdate);
 
-router.delete("/:id", requireRole(['admin']), deleteAuthorHandler);
+router.delete('/:id', protect, requireRole(['admin', 'superadmin']), authorRemove);
 
 export default router;

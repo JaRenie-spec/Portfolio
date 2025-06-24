@@ -1,77 +1,46 @@
 import { RequestHandler } from 'express';
-import * as purchaseService from '../services/purchase.service';
-import { createPurchaseSchema, updatePurchaseSchema } from '../types/purchase.types';
+import { PrismaClient } from '@prisma/client';
 
+const prisma = new PrismaClient();
+
+/**
+ * GET /purchases
+ */
+export const findAll: RequestHandler = async (_req, res) => {
+  const purchases = await prisma.purchase.findMany();
+  res.json(purchases);
+};
+
+/**
+ * GET /purchases/:id
+ */
+export const findOne: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const purchase = await prisma.purchase.findUnique({ where: { id } });
+  if (!purchase) {
+    res.status(404).json({ error: 'Achat non trouvé' });
+    return;
+  }
+  res.json(purchase);
+};
+
+/**
+ * POST /purchases
+ */
 export const create: RequestHandler = async (req, res) => {
-  try {
-    const parsed = createPurchaseSchema.parse(req.body);
-    const purchase = await purchaseService.createPurchase(parsed);
-    res.status(201).json(purchase);
-  } catch (error: any) {
-    if (error.name === 'ZodError') {
-      res.status(400).json({ errors: error.errors });
-      return;
-    }
-    res.status(500).json({ error: 'Failed to create purchase' });
-  }
+  const { bookId } = req.body;
+  const userId = (req as any).user.sub as string; // ID Keycloak du client
+  const newPurchase = await prisma.purchase.create({
+    data: { bookId, userId },
+  });
+  res.status(201).json(newPurchase);
 };
 
-export const getAll: RequestHandler = async (_req, res) => {
-  try {
-    const purchases = await purchaseService.getAllPurchases();
-    res.status(200).json(purchases);
-  } catch {
-    res.status(500).json({ error: 'Failed to fetch purchases' });
-  }
-};
-
-export const getById: RequestHandler = async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (!id || typeof id !== 'string') {
-      res.status(400).json({ error: 'Invalid purchase ID' });
-      return;
-    }
-    const purchase = await purchaseService.getPurchaseById(id);
-    if (!purchase) {
-      res.status(404).json({ error: 'Purchase not found' });
-      return;
-    }
-    res.status(200).json(purchase);
-  } catch {
-    res.status(500).json({ error: 'Failed to fetch purchase' });
-  }
-};
-
-export const update: RequestHandler = async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (!id || typeof id !== 'string') {
-      res.status(400).json({ error: 'Invalid purchase ID' });
-      return;
-    }
-    const parsed = updatePurchaseSchema.parse(req.body);
-    const purchase = await purchaseService.updatePurchase(id, parsed);
-    res.status(200).json(purchase);
-  } catch (error: any) {
-    if (error.name === 'ZodError') {
-      res.status(400).json({ errors: error.errors });
-      return;
-    }
-    res.status(500).json({ error: 'Failed to update purchase' });
-  }
-};
-
+/**
+ * DELETE /purchases/:id
+ */
 export const remove: RequestHandler = async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (!id || typeof id !== 'string') {
-      res.status(400).json({ error: 'Invalid purchase ID' });
-      return;
-    }
-    const purchase = await purchaseService.softDeletePurchase(id);
-    res.status(200).json({ message: 'Purchase deleted', purchase });
-  } catch {
-    res.status(500).json({ error: 'Failed to delete purchase' });
-  }
+  const { id } = req.params;
+  await prisma.purchase.delete({ where: { id } });
+  res.sendStatus(204);
 };
