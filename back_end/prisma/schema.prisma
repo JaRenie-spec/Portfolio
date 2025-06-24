@@ -18,7 +18,7 @@ model Account {
   id            String      @id                        // UUID Keycloak (sub)
   email         String      @unique                    // Email récupéré du token
   username      String                                // Pseudo/utilisateur Keycloak
-  role          String                                // Rôle principal (superadmin, admin, author, client)
+  roles         String[]                                // Rôles principaux (superadmin, admin, author, client)
 
   superAdminId  String?     @unique
   superAdmin    SuperAdmin? @relation(fields: [superAdminId], references: [id])
