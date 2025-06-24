@@ -1,66 +1,30 @@
-// app/page.tsx
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
+import { Navbar } from '@/components/app/Navbar/Navbar'
+import { Button } from '@/components/ui/button'
+import WriterCarousel from '@/components/app/WriterCarousel/WriterCarousel'
 
-export default function Home() {
+export default function Test() {
   return (
-    <div className="container mx-auto px-4 py-8 space-y-12">
-      <section className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">Bienvenue sur AutheursConnect</h1>
-        <p className="text-muted-foreground max-w-xl mx-auto">
-          Une plateforme dédiée aux auteurs indépendants et à leurs lecteurs curieux.
-        </p>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold">📚 Livres vedette</h2>
-        <Carousel orientation="vertical" className="h-[300px]">
-          <CarouselContent>
-            {[...Array(5)].map((_, i) => (
-              <CarouselItem key={i}>
-                <div className="bg-card p-4 rounded shadow">Livre vedette #{i + 1}</div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold">🎉 Évènements à venir</h2>
-        <Carousel orientation="vertical" className="h-[300px]">
-          <CarouselContent>
-            {[...Array(5)].map((_, i) => (
-              <CarouselItem key={i}>
-                <div className="bg-card p-4 rounded shadow">Événement #{i + 1}</div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold">✨ Recommandés pour vous</h2>
-        <Carousel orientation="horizontal">
-          <CarouselContent className="space-x-4">
-            {[...Array(8)].map((_, i) => (
-              <CarouselItem key={i} className="basis-1/3">
-                <div className="bg-card p-4 rounded shadow text-center">Suggestion #{i + 1}</div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
-      </section>
+    <div className="flex flex-col min-h-screen">
+      <div className="fixed top-0 left-0 w-full z-50 bg-background shadow-md h-20 flex items-center px-8">
+        <div className="w-full">
+          <Navbar />
+        </div>
+      </div>
+      <main className="flex flex-1 flex-col items-center justify-center px-4 py-16 bg-background pt-32">
+        <section className="max-w-2xl text-center mb-20">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Empowering Independent Writers</h1>
+          <p className="text-lg md:text-xl text-muted-foreground mb-8">
+            Discover, support, and buy books directly from talented independent authors. Our platform helps writers reach their audience and sell their books online with ease.
+          </p>
+          <Button size="lg" className="text-lg px-8 py-4">
+            Get Started
+          </Button>
+        </section>
+        <section className="w-full max-w-4xl">
+          <h2 className="text-2xl font-semibold mb-6 text-center">Featured Writers</h2>
+          <WriterCarousel />
+        </section>
+      </main>
     </div>
   )
 }
