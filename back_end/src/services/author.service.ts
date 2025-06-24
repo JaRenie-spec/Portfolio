@@ -7,10 +7,7 @@ const prisma = new PrismaClient();
 export const createAuthor = async (data: CreateAuthorDTO) => {
   try {
     return await prisma.author.create({
-      data: {
-        ...data,
-        createdByAdminId: data.createdByAdminId ?? null,
-      },
+      data: { ...data },
     });
   } catch (err) {
     console.error("Erreur création auteur :", err);
@@ -37,10 +34,10 @@ export const getAllAuthors = async () => {
 };
 
 // 🔹 Récupérer un auteur par ID (avec relations)
-export const getAuthorById = async (id: number) => {
+export const getAuthorById = async (id: string) => {
   try {
     const author = await prisma.author.findFirst({
-      where: { id: id.toString(), deletedAt: null },
+      where: { id: id, deletedAt: null },
       include: {
         books: true,
         events: true,
@@ -64,12 +61,12 @@ export const getAuthorById = async (id: number) => {
 
 // 🔹 Mettre à jour un auteur
 export const updateAuthor = async (
-  id: number,
+  id: string,
   data: Partial<CreateAuthorDTO>
 ) => {
   try {
     return await prisma.author.update({
-      where: { id: id.toString() },
+      where: { id: id },
       data: {
         ...data,
         updatedAt: new Date(),
@@ -82,10 +79,10 @@ export const updateAuthor = async (
 };
 
 // 🔹 Supprimer un auteur (soft delete)
-export const deleteAuthor = async (id: number) => {
+export const deleteAuthor = async (id: string) => {
   try {
     return await prisma.author.update({
-      where: { id: id.toString() },
+      where: { id: id },
       data: {
         deletedAt: new Date(),
       },
