@@ -1,21 +1,34 @@
 import { Router } from 'express';
-import { validateBody } from '../middlewares/validateBody';
-import { CreateUserSchema, UpdateUserSchema } from '../types/user.types';
-import { protect } from '../middlewares/protect';
+import { requireRole } from '../middlewares/requireRole';
 import {
-  createUser,
-  updateUser,
-  updateOwnProfile,
-  deleteOwnAccount,
-  deleteUser,
+  me,
+  updateMe,
+  becomeAuthor,
+  findOne,
+  remove,
+  findAll,
 } from '../controllers/user.controller';
+import { protect } from '../middlewares/protect';
 
 const router = Router();
 
-router.post('/', validateBody(CreateUserSchema), createUser);
-router.put('/:id', validateBody(UpdateUserSchema), updateUser);
-router.put('/me', protect, validateBody(UpdateUserSchema), updateOwnProfile);
-router.delete('/:id', deleteUser);
-router.delete('/me', protect, deleteOwnAccount);
+/**
+ * 1️⃣ Self-service (tout utilisateur authentifié peut y accéder)
+ *    – protect appliqué globalement dans app.ts
+ */
+router.get('/me', protect, me);
+router.put('/me', protect, updateMe);
+router.post('/become-author', protect, requireRole(['client']), becomeAuthor);
+
+/**
+ * 2️⃣ Par ID – réservé aux admin & superadmin
+ */
+router.get('/:id', protect, requireRole(['admin', 'superadmin']), findOne);
+router.delete('/:id', protect, requireRole(['admin', 'superadmin']), remove);
+
+/**
+ * 3️⃣ Liste complète – réservé au superadmin
+ */
+router.get('/', protect, requireRole(['superadmin']), findAll);
 
 export default router;

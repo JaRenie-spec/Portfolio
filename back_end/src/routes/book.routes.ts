@@ -1,47 +1,24 @@
-import { Router } from "express";
-import multer from "multer";
+import { Router } from 'express';
+import { protect } from '../middlewares/protect';
+import { requireRole } from '../middlewares/requireRole';
+import { validateBook } from '../middlewares/book.validator';
 import {
-  createBookHandler,
-  getAllBooksHandler,
-  getBookByIdHandler,
-  updateBookHandler,
-  deleteBookHandler,
-  searchBooksByTitleHandler,
-  uploadBookFileHandler,
-  searchBooksByAuthorHandler,
-} from "../controllers/book.controller";
-import { validateCreateBook, validateUpdateBook } from "../middlewares/book.validator";
-import { requireRole } from "../middlewares/requireRole";
+  findAll as bookFindAll,
+  findOne as bookFindOne,
+  create as bookCreate,
+  update as bookUpdate,
+  remove as bookRemove
+} from '../controllers/book.controller';
 
 const router = Router();
-const upload = multer({ dest: "uploads/" });
 
-router.post(
-  "/",
-  requireRole(["admin", "author"]),
-  validateCreateBook,
-  createBookHandler
-);
+router.get('/', bookFindAll);
+router.get('/:id', bookFindOne);
 
-router.get("/", getAllBooksHandler);
-router.get("/search", searchBooksByTitleHandler);
-router.get("/author/:authorId", searchBooksByAuthorHandler);
-router.get("/:id", getBookByIdHandler);
+router.post('/', protect, requireRole(['author','admin','superadmin']), validateBook, bookCreate);
 
-router.put(
-  "/:id",
-  requireRole(["admin", "author"]),
-  validateUpdateBook,
-  updateBookHandler
-);
+router.put('/:id', protect, requireRole(['author','admin','superadmin']), validateBook, bookUpdate);
 
-router.delete("/:id", requireRole(["admin"]), deleteBookHandler);
-
-router.post(
-  "/:id/upload",
-  requireRole(["admin", "author"]),
-  upload.single("file"),
-  uploadBookFileHandler
-);
+router.delete('/:id', protect, requireRole(['admin','superadmin']), bookRemove);
 
 export default router;

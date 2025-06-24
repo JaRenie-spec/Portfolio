@@ -1,28 +1,62 @@
 services:
   postgres:
-    image: postgres:15
-    container_name: my-postgres
+    image: postgres:14
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: mydb
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
+    networks:
+      - back_end-network
 
-  app:
-    build: .
-    container_name: my-app
-    volumes:
-      - .:/app
-    working_dir: /app
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev
+    env_file:
+      - .env
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_CLI_CLIENT}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: ${KC_DB}
+      KC_DB_URL: ${KC_DB_URL}
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+    ports:
+      - "8080:8080"
     depends_on:
       - postgres
+    networks:
+      - back_end-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/mydb
-    command: sh -c "npx prisma migrate dev --name init && npm run dev"
+      - PORT=${PORT}
+      - DATABASE_URL=${CONTAINER_DATABASE_URL}
+      - DIRECT_URL=${CONTAINER_DATABASE_URL}
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - keycloak
+    networks:
+      - back_end-network
 
 volumes:
-  pgdata:
+  postgres_data:
+
+networks:
+  back_end-network:
+    driver: bridge
