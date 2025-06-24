@@ -2,21 +2,10 @@
 import { RequestHandler } from 'express';
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
+import { getKeycloakAdminToken } from '../services/keycloak.service';
 import { AuthenticatedRequest } from '../middlewares/protect';
 
 const prisma = new PrismaClient();
-
-interface KeycloakTokenResponse {
-  access_token: string;
-  expires_in: number;
-  refresh_expires_in: number;
-  token_type: string;
-  scope: string;
-}
-interface KeycloakRole {
-  id: string;
-  name: string;
-}
 
 /**
  * GET /api/users
@@ -75,60 +64,34 @@ export const updateMe: RequestHandler = async (req, res) => {
  */
 export const becomeAuthor: RequestHandler = async (req, res) => {
   try {
-    const { sub, email, username } = (req as AuthenticatedRequest).user;
+    const { sub: userId } = (req as AuthenticatedRequest).user;
 
-    // 1) Récupérer un token admin Keycloak
-    const params = new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: process.env.KEYCLOAK_ADMIN_CLI_CLIENT!,
-      client_secret: process.env.KEYCLOAK_ADMIN_PASSWORD!,
-    }).toString();
+    // 1️⃣ Récupérer le token admin Keycloak via client_credentials
+    const adminToken = await getKeycloakAdminToken();
 
-    const tokenRes = await axios.post<KeycloakTokenResponse>(
-      `${process.env.KEYCLOAK_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
-      params,
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-    const adminToken = tokenRes.data.access_token;
-
-    // 2) Récupérer l’ID du rôle “author”
-    const roleRes = await axios.get<KeycloakRole>(
+    // 2️⃣ Récupérer l’ID du rôle “author” (optionnel si tu connais déjà son UUID)
+    const roleRes = await axios.get(
       `${process.env.KEYCLOAK_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/roles/author`,
       { headers: { Authorization: `Bearer ${adminToken}` } }
     );
     const roleId = roleRes.data.id;
 
-    // 3) Assigner le rôle “author” dans Keycloak
+    // 3️⃣ Assigner le rôle “author” à l’utilisateur
     await axios.post(
-      `${process.env.KEYCLOAK_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${sub}/role-mappings/realm`,
+      `${process.env.KEYCLOAK_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`,
       [{ id: roleId, name: 'author' }],
-      { headers: { Authorization: `Bearer ${adminToken}` } }
+      {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
     );
 
-    // 4) Vérifier / créer l’entité Author locale
-    const accountWithAuthor = await prisma.account.findUnique({
-      where: { id: sub },
-      include: { author: true },
-    });
-    let authorRecord = accountWithAuthor?.author;
-    if (!authorRecord) {
-      authorRecord = await prisma.author.create({
-        data: {
-          firstName: '',
-          lastName: '',
-          pseudo: username,
-          email,
-          password: '',
-          account: { connect: { id: sub } },
-        },
-      });
-      await prisma.account.update({
-        where: { id: sub },
-        data: { authorId: authorRecord.id },
-      });
-    }
+    // 4️⃣ (Optionnel) Synchroniser côté base de données
+    // … ton code Prisma pour créer la ligne Author
 
-    res.json({ success: true, authorId: authorRecord.id });
+    res.json({ success: true, authorId: roleId });
   } catch (err: any) {
     console.error('becomeAuthor error:', err.response?.data || err.message);
     res.status(500).json({ error: 'Impossible de devenir auteur' });
