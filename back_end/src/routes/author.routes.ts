@@ -4,7 +4,6 @@ import { requireRole } from '../middlewares/requireRole';
 import {
   findAll as authorFindAll,
   findOne as authorFindOne,
-  create as authorCreate,
   update as authorUpdate,
   remove as authorRemove,
   findByPublicInfo
@@ -12,16 +11,16 @@ import {
 
 const router = Router();
 
-router.get('/', protect, requireRole(['admin']), authorFindAll);
-router.get('/:id', protect, requireRole(['admin']), authorFindOne);
-
-router.post('/', protect, requireRole(['admin']), authorCreate);
-
-router.put('/:id', protect, requireRole(['admin']), authorUpdate);
-
-router.delete('/:id', protect, requireRole(['admin']), authorRemove);
+router.get('/', authorFindAll);
 
 router.get('/search', findByPublicInfo);
+
+router.get('/:id', protect, requireRole(['admin']), authorFindOne);
+
+router.put('/:id', protect, requireRole(['author','admin']), authorUpdate);
+
+router.delete('/:id', protect, requireRole(['author','admin']), authorRemove);
+
 
 
 export default router;

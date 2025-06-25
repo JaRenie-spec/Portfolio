@@ -3,18 +3,6 @@ import { CreateAuthorDTO } from "../types";
 
 const prisma = new PrismaClient();
 
-// 🔹 Créer un auteur
-export const createAuthor = async (data: CreateAuthorDTO) => {
-  try {
-    return await prisma.author.create({
-      data: { ...data },
-    });
-  } catch (err) {
-    console.error("Erreur création auteur :", err);
-    throw new Error("Impossible de créer l’auteur.");
-  }
-};
-
 // 🔹 Lister tous les auteurs (avec relations)
 export const getAllAuthors = async () => {
   try {
@@ -90,69 +78,5 @@ export const deleteAuthor = async (id: string) => {
   } catch (err) {
     console.error("Erreur suppression auteur :", err);
     throw new Error("Impossible de supprimer l’auteur.");
-  }
-};
-
-// 🔎 Chercher par pseudo
-export const findAuthorByPseudo = async (pseudo: string) => {
-  try {
-    return await prisma.author.findFirst({
-      where: {
-        pseudo,
-        deletedAt: null,
-      },
-      include: {
-        books: true,
-        events: true,
-        reviews: true,
-      },
-    });
-  } catch (err) {
-    console.error("Erreur recherche par pseudo :", err);
-    throw new Error("Erreur recherche par pseudo.");
-  }
-};
-
-// 🔎 Chercher par email
-export const findAuthorByEmail = async (email: string) => {
-  try {
-    return await prisma.author.findUnique({
-      where: {
-        email,
-      },
-      include: {
-        books: true,
-        events: true,
-        reviews: true,
-      },
-    });
-  } catch (err) {
-    console.error("Erreur recherche par email :", err);
-    throw new Error("Erreur recherche par email.");
-  }
-};
-
-// 🔎 Chercher tous les auteurs ayant écrit un livre contenant un mot-clé
-export const findAuthorsByBookTitle = async (title: string) => {
-  try {
-    return await prisma.author.findMany({
-      where: {
-        deletedAt: null,
-        books: {
-          some: {
-            title: {
-              contains: title,
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-      include: {
-        books: true,
-      },
-    });
-  } catch (err) {
-    console.error("Erreur recherche auteurs par titre de livre :", err);
-    throw new Error("Erreur recherche auteurs par livre.");
   }
 };

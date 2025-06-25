@@ -47,18 +47,6 @@ export const findByPublicInfo: RequestHandler = async (req, res) => {
 
   res.json(authors);
 };
-
-/**
- * POST /authors
- */
-export const create: RequestHandler = async (req, res) => {
-  const { firstName, lastName, pseudo, email, password, bio, link } = req.body;
-  const newAuthor = await prisma.author.create({
-    data: { firstName, lastName, pseudo, email, password, bio, link }
-  });
-  res.status(201).json(newAuthor);
-};
-
 /**
  * PUT /authors/:id
  */
