@@ -6,18 +6,22 @@ import {
   findOne as authorFindOne,
   create as authorCreate,
   update as authorUpdate,
-  remove as authorRemove
+  remove as authorRemove,
+  findByPublicInfo
 } from '../controllers/author.controller';
 
 const router = Router();
 
-router.get('/', protect, requireRole(['admin', 'superadmin']), authorFindAll);
-router.get('/:id', authorFindOne);
+router.get('/', protect, requireRole(['admin']), authorFindAll);
+router.get('/:id', protect, requireRole(['admin']), authorFindOne);
 
-router.post('/', protect, requireRole(['admin', 'superadmin']), authorCreate);
+router.post('/', protect, requireRole(['admin']), authorCreate);
 
-router.put('/:id', protect, requireRole(['admin', 'superadmin']), authorUpdate);
+router.put('/:id', protect, requireRole(['admin']), authorUpdate);
 
-router.delete('/:id', protect, requireRole(['admin', 'superadmin']), authorRemove);
+router.delete('/:id', protect, requireRole(['admin']), authorRemove);
+
+router.get('/authors/search', findByPublicInfo);
+
 
 export default router;

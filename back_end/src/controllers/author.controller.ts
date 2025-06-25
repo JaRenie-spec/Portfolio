@@ -24,6 +24,30 @@ export const findOne: RequestHandler = async (req, res) => {
   res.json(author);
 };
 
+/**GET /authors/search
+ *
+ */
+export const findByPublicInfo: RequestHandler = async (req, res) => {
+  const { pseudo, nom, prenom } = req.query;
+
+  const authors = await prisma.author.findMany({
+    where: {
+      AND: [
+        pseudo ? { pseudo: { contains: String(pseudo), mode: 'insensitive' } } : {},
+        nom ? { lastName: { contains: String(nom), mode: 'insensitive' } } : {},
+        prenom ? { firstName: { contains: String(prenom), mode: 'insensitive' } } : {},
+      ],
+    },
+  });
+
+  if (!authors.length) {
+    res.status(404).json({ error: 'Aucun auteur trouvé' });
+    return;
+  }
+
+  res.json(authors);
+};
+
 /**
  * POST /authors
  */
