@@ -23,12 +23,9 @@ router.post('/become-author', protect, requireRole(['client']), becomeAuthor);
 /**
  * 2️⃣ Par ID – réservé aux admin & superadmin
  */
-router.get('/:id', protect, requireRole(['admin', 'superadmin']), findOne);
-router.delete('/:id', protect, requireRole(['admin', 'superadmin']), remove);
+router.get('/:id', protect, requireRole(['admin']), findOne);
+router.delete('/:id', protect, requireRole(['admin']), remove);
 
-/**
- * 3️⃣ Liste complète – réservé au superadmin
- */
-router.get('/', protect, requireRole(['superadmin']), findAll);
+router.get('/', protect, requireRole(['admin']), findAll);
 
 export default router;

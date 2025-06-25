@@ -15,10 +15,10 @@ const router = Router();
 router.get('/', bookFindAll);
 router.get('/:id', bookFindOne);
 
-router.post('/', protect, requireRole(['author','admin','superadmin']), validateBook, bookCreate);
+router.post('/', protect, requireRole(['author','admin']), validateBook, bookCreate);
 
-router.put('/:id', protect, requireRole(['author','admin','superadmin']), validateBook, bookUpdate);
+router.put('/:id', protect, requireRole(['author','admin']), validateBook, bookUpdate);
 
-router.delete('/:id', protect, requireRole(['admin','superadmin']), bookRemove);
+router.delete('/:id', protect, requireRole(['admin']), bookRemove);
 
 export default router;

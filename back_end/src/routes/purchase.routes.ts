@@ -12,11 +12,11 @@ import {
 const router = Router();
 
 
-router.get('/', protect, requireRole(['admin','superadmin']), purchaseFindAll);
-router.get('/:id', protect, requireRole(['admin','superadmin']), purchaseFindOne);
+router.get('/', protect, requireRole(['admin']), purchaseFindAll);
+router.get('/:id', protect, requireRole(['admin']), purchaseFindOne);
 
 router.post('/', protect, requireRole(['client']), validateCreatePurchase, purchaseCreate);
 
-router.delete('/:id', protect, requireRole(['admin','superadmin']), purchaseRemove);
+router.delete('/:id', protect, requireRole(['admin']), purchaseRemove);
 
 export default router;

@@ -16,12 +16,13 @@ import {
 const router = Router();
 
 router.get('/', reviewFindAll);
+
 router.get('/:id', reviewFindOne);
 
-router.post('/', protect, requireRole(['client']), validateCreateReview, reviewCreate);
+router.post('/', protect, requireRole(['client', 'author']), validateCreateReview, reviewCreate);
 
-router.put('/:id', protect, requireRole(['client','admin','superadmin']), validateUpdateReview, reviewUpdate);
+router.put('/:id', protect, requireRole(['client', 'admin', 'author']), validateUpdateReview, reviewUpdate);
 
-router.delete( '/:id', protect, requireRole(['admin','superadmin']), reviewRemove);
+router.delete( '/:id', protect, requireRole(['admin']), reviewRemove);
 
 export default router;

@@ -10,13 +10,13 @@ import { requireRole } from "../middlewares/requireRole";
 
 const router = Router();
 
-router.get("/", requireRole(["admin", "superAdmin"]), getAllAdminsHandler);
-router.get("/:id", requireRole(["admin", "superAdmin"]), getAdminByIdHandler);
+router.get("/", requireRole(["admin"]), getAllAdminsHandler);
+router.get("/:id", requireRole(["admin"]), getAdminByIdHandler);
 
-router.post("/", requireRole(["admin", "superAdmin"]), createAdminHandler);
+router.post("/", requireRole(["admin"]), createAdminHandler);
 
-router.put("/:id", requireRole(["admin", "superAdmin"]), updateAdminHandler);
+router.put("/:id", requireRole(["admin"]), updateAdminHandler);
 
-router.delete("/:id", requireRole(["admin", "superAdmin"]), deleteAdminHandler);
+router.delete("/:id", requireRole(["admin"]), deleteAdminHandler);
 
 export default router;
