@@ -21,7 +21,7 @@ router.put('/:id', protect, requireRole(['admin']), authorUpdate);
 
 router.delete('/:id', protect, requireRole(['admin']), authorRemove);
 
-router.get('/authors/search', findByPublicInfo);
+router.get('/search', findByPublicInfo);
 
 
 export default router;
