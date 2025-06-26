@@ -14,6 +14,8 @@ const router = Router();
 
 router.get('/', bookFindAll);
 
+router.get('/search', bookFindAll);
+
 router.get('/:id', protect, requireRole(['admin']), bookFindOne);
 
 router.post('/', protect, requireRole(['author','admin']), validateBook, bookCreate);
