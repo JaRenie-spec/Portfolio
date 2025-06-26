@@ -10,7 +10,6 @@ import {
     CarouselPrevious,
 } from "@/components/ui/carousel";
 
-
 const books = [
     { title: "Le Secret de l'Encre", author: "M. Charpentier" },
     { title: "Ombres du Passé", author: "J. Moreau" },
@@ -24,7 +23,7 @@ const books = [
     { title: "Mystères de la Nuit", author: "T. Fontaine" },
 ];
 
-export default function BookCarouselVertical() {
+export default function BookCarouselHorizontal() {
     const plugin = useRef(Autoplay({ delay: 2000 }));
 
     return (

@@ -1,7 +1,6 @@
 'use client'
 
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel'
-import WriterCard from '../WriterCard/WriterCard'
 
 const writers = [
     { id: 1, name: 'Jane Doe', bio: 'Fantasy & Adventure', image: null },
@@ -16,7 +15,7 @@ const writers = [
     { id: 10, name: 'James Taylor', bio: 'Horror & Suspense', image: null }
 ]
 
-export default function WriterCarousel() {
+export default function WriterCarouselVertical() {
     return (
         <Carousel
             orientation="vertical"
@@ -25,7 +24,10 @@ export default function WriterCarousel() {
             <CarouselContent className="h-full">
                 {writers.map(writer => (
                     <CarouselItem key={writer.id} className="w-full">
-                        <WriterCard name={writer.name} bio={writer.bio} image={writer.image} />
+                        <div className="bg-card p-4 rounded shadow text-center">
+                            <h3 className="font-semibold">{writer.name}</h3>
+                            <p className="text-muted-foreground text-sm">{writer.bio}</p>
+                        </div>
                     </CarouselItem>
                 ))}
             </CarouselContent>
