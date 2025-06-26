@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { AuthenticatedRequest } from '../middlewares/protect'
 
 
 const prisma = new PrismaClient();
@@ -52,12 +53,20 @@ export const findByPublicInfo: RequestHandler = async (req, res) => {
  */
 export const update: RequestHandler = async (req, res) => {
   const { id } = req.params;
-  const { firstName, lastName, pseudo, email, bio, link } = req.body;
-  const updated = await prisma.author.update({
-    where: { id },
-    data: { firstName, lastName, pseudo, email, bio, link }
-  });
-  res.json(updated);
+	const { sub, roles } = (req as AuthenticatedRequest).user;
+	const isAdmin = roles.includes('admin');
+
+	if (!isAdmin && id !== sub) {
+		res.status(403).json({ error: 'Accès refusé : vous devez agir sur votre propre profil'});
+		return;
+	}
+
+	const { firstName, lastName, pseudo, email, bio, link } = req.body;
+	const updated = await prisma.author.update({
+		where: { id },
+		data: { firstName, lastName, pseudo, email, bio, link }
+	});
+	res.json(updated);
 };
 
 /**
@@ -65,6 +74,14 @@ export const update: RequestHandler = async (req, res) => {
  */
 export const remove: RequestHandler = async (req, res) => {
   const { id } = req.params;
-  await prisma.author.delete({ where: { id } });
-  res.sendStatus(204);
+	const { sub, roles } = (req as AuthenticatedRequest).user;
+	const isAdmin = roles.includes('admin');
+
+	if (!isAdmin && id !== sub) {
+		res.status(403).json({ error: 'Vous pouvez uniquement supprimer votre profil !'});
+		return;
+	}
+
+	await prisma.author.delete({ where: { id } });
+	res.sendStatus(204);
 };
