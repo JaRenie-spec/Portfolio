@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { AuthenticatedRequest } from '../middlewares/protect'
 
 const prisma = new PrismaClient();
 
@@ -42,21 +43,28 @@ export const findOne: RequestHandler = async (req, res) => {
  * POST /books
  */
 export const create: RequestHandler = async (req, res) => {
-  const { title, isbn, price, description, rating, fileUrl } = req.body;
-  const { sub, roles } = (req as any).user;
+  const { sub, roles } = (req as AuthenticatedRequest).user;
+  const isAdmin = roles.includes('admin');
 
-  let finalAuthorId = req.body.authorId;
-  if (roles.includes('author')) {
-    finalAuthorId = sub;
+  // 1️⃣ Empêcher un author de spécifier un other authorId
+  if (!isAdmin && req.body.authorId && req.body.authorId !== sub) {
+    res.status(403).json({ error: 'Impossible de créer un livre pour un autre auteur' });
+		return;
   }
 
+  // 2️⃣ Déterminer l’auteur final
+  const finalAuthorId = isAdmin
+    ? req.body.authorId     // admin peut choisir
+    : sub;                  // author forcé à lui-même
+
+  const { title, isbn, price, description, rating, fileUrl } = req.body;
   try {
     const newBook = await prisma.book.create({
       data: { title, isbn, price, description, rating, fileUrl, authorId: finalAuthorId }
     });
     res.status(201).json(newBook);
   } catch (err: any) {
-    console.error('Erreur lors de la création du livre:', err);
+    console.error('Erreur création livre:', err);
     res.status(500).json({ error: 'Erreur lors de la création du livre.' });
   }
 };
@@ -125,14 +133,34 @@ export const findByPublicInfo: RequestHandler = async (req, res) => {
  */
 export const update: RequestHandler = async (req, res) => {
   const { id } = req.params;
-  const { title, isbn, price, description, rating, fileUrl } = req.body;
-  const { sub, roles } = (req as any).user;
+  const { sub, roles } = (req as AuthenticatedRequest).user;
+  const isAdmin = roles.includes('admin');
 
-  let finalAuthorId = req.body.authorId;
-  if (roles.includes('author')) {
-    finalAuthorId = sub;
+  // Récupérer le livre et vérifier existence
+  const book = await prisma.book.findUnique({ where: { id } });
+  if (!book) {
+    res.status(404).json({ error: 'Livre non trouvé' });
+		return;
   }
 
+  // 1️⃣ Empêcher un author de toucher un livre qui n'est pas le sien
+  if (!isAdmin && book.authorId !== sub) {
+    res.status(403).json({ error: 'Impossible de modifier ce livre' });
+		return;
+  }
+
+  // 2️⃣ Empêcher un author de réassigner le livre à un autre auteur
+  if (!isAdmin && req.body.authorId && req.body.authorId !== sub) {
+    res.status(403).json({ error: 'Impossible de changer l’auteur du livre' });
+		return;
+  }
+
+  // 3️⃣ Déterminer l’auteur final pour l’update
+  const finalAuthorId = isAdmin
+    ? req.body.authorId ?? book.authorId  // admin peut changer ou conserver
+    : sub;                                 // author reste lui-même
+
+  const { title, isbn, price, description, rating, fileUrl } = req.body;
   try {
     const updated = await prisma.book.update({
       where: { id },
@@ -140,8 +168,8 @@ export const update: RequestHandler = async (req, res) => {
     });
     res.json(updated);
   } catch (err: any) {
-    console.error('Erreur lors de la mise à jour', err);
-    res.status(500).json({ error: 'Impossible de mettre à jour le livre ' });
+    console.error('Erreur mise à jour livre :', err);
+    res.status(500).json({ error: 'Impossible de mettre à jour le livre.' });
   }
 };
 
@@ -150,22 +178,26 @@ export const update: RequestHandler = async (req, res) => {
  */
 export const remove: RequestHandler = async (req, res) => {
   const { id } = req.params;
-  const { sub, roles } = (req as any).user;
+  const { sub, roles } = (req as AuthenticatedRequest).user;
+  const isAdmin = roles.includes('admin');
+
+  const book = await prisma.book.findUnique({ where: { id } });
+  if (!book) {
+    res.status(404).json({ error: 'Livre non trouvé' });
+		return;
+  }
+
+  // Seul l’admin ou le propriétaire peut supprimer
+  if (!isAdmin && book.authorId !== sub) {
+    res.status(403).json({ error: 'Impossible de supprimer ce livre' });
+		return;
+  }
 
   try {
-    const book = await prisma.book.findUnique({ where: { id } });
-    if (!book) {
-      res.status(404).json({ error: 'Livre non trouvé' });
-      return;
-    }
-    if (roles.includes('author') && book.authorId !== sub) {
-      res.status(403).json({ error: 'Impossible de supprimer ce livre' });
-      return;
-    }
     await prisma.book.delete({ where: { id } });
     res.sendStatus(204);
   } catch (err: any) {
     console.error('Erreur suppression livre :', err);
-    res.status(500).json({ error: 'Impossible de supprimer le livre' });
+    res.status(500).json({ error: 'Impossible de supprimer le livre.' });
   }
 };
