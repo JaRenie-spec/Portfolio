@@ -17,7 +17,7 @@ const events = [
 
 export default function EventCarouselVertical() {
     return (
-        <Carousel orientation="vertical" className="h-[300px] relative overflow-hidden">
+        <Carousel orientation="vertical" className="h-[320px] relative overflow-hidden w-full max-w-xl">
             <CarouselContent className="h-full">
                 {events.map((event, i) => (
                     <CarouselItem key={i} className='w-full'>
@@ -28,8 +28,8 @@ export default function EventCarouselVertical() {
                     </CarouselItem>
                 ))}
             </CarouselContent>
-            <CarouselPrevious className="absolute left-1/2 -translate-x-1/2 -top-4 rotate-90" />
-            <CarouselNext className="absolute left-1/2 -translate-x-1/2 -bottom-4 rotate-90" />
+            <CarouselPrevious className="absolute left-1/2 -translate-x-1/2 -top-6 rotate-90 z-10" />
+            <CarouselNext className="absolute left-1/2 -translate-x-1/2 -bottom-6 rotate-90 z-10" />
         </Carousel>
     )
 }

@@ -19,7 +19,7 @@ export function Navbar() {
                 <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">
                     Accueil
                 </Link>
-                <Link href="/book" className="text-sm font-medium hover:text-primary transition-colors">
+                <Link href="/books" className="text-sm font-medium hover:text-primary transition-colors">
                     Livres
                 </Link>
                 <Link href="/writers" className="text-sm font-medium hover:text-primary transition-colors">

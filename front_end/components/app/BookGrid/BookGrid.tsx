@@ -5,39 +5,39 @@ import BookCard from '../BookCard/BookCard'
 const books = [
   {
     id: 1,
-    title: "Le Secret de l'Encre",
-    author: "M. Charpentier",
+    title: "The Secret of Ink",
+    author: "M. Carpenter",
     rating: 4.2,
     price: 15.99,
     coverColor: "from-blue-100 to-purple-100"
   },
   {
     id: 2,
-    title: "Ombres du Passé",
-    author: "J. Moreau",
+    title: "Shadows of the Past",
+    author: "J. Morgan",
     rating: 4.5,
     price: 12.99,
     coverColor: "from-green-100 to-blue-100"
   },
   {
     id: 3,
-    title: "Lumière d'Hiver",
-    author: "S. Berthier",
+    title: "Winter Light",
+    author: "S. Bertier",
     rating: 4.8,
     price: 18.99,
     coverColor: "from-pink-100 to-red-100"
   },
   {
     id: 4,
-    title: "Voyage au Coeur des Étoiles",
-    author: "A. Lefèvre",
+    title: "Journey to the Heart of Stars",
+    author: "A. Lefevre",
     rating: 3.8,
     price: 14.99,
     coverColor: "from-yellow-100 to-orange-100"
   },
   {
     id: 5,
-    title: "Les Murmures de la Forêt",
+    title: "Whispers of the Forest",
     author: "C. Dubois",
     rating: 4.1,
     price: 16.99,
@@ -45,7 +45,7 @@ const books = [
   },
   {
     id: 6,
-    title: "Rêves d'Émeraude",
+    title: "Emerald Dreams",
     author: "L. Martin",
     rating: 4.3,
     price: 13.99,
@@ -53,7 +53,7 @@ const books = [
   },
   {
     id: 7,
-    title: "L'Écho des Vagues",
+    title: "Echo of the Waves",
     author: "P. Rousseau",
     rating: 4.0,
     price: 17.99,
@@ -61,7 +61,7 @@ const books = [
   },
   {
     id: 8,
-    title: "Au-delà des Nuages",
+    title: "Beyond the Clouds",
     author: "F. Garnier",
     rating: 4.6,
     price: 19.99,
@@ -71,13 +71,13 @@ const books = [
 
 export default function BookGrid() {
   const handleAddToCart = (bookId: number) => {
-    console.log(`Ajouter le livre ${bookId} au panier`)
-    // Ici vous pouvez ajouter la logique pour ajouter au panier
+    console.log(`Add book ${bookId} to cart`)
+    // Here you can add the logic to add to cart
   }
 
   const handleFavorite = (bookId: number) => {
-    console.log(`Ajouter le livre ${bookId} aux favoris`)
-    // Ici vous pouvez ajouter la logique pour les favoris
+    console.log(`Add book ${bookId} to favorites`)
+    // Here you can add the logic for favorites
   }
 
   return (

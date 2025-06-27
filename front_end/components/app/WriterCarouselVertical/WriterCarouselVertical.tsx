@@ -19,7 +19,7 @@ export default function WriterCarouselVertical() {
     return (
         <Carousel
             orientation="vertical"
-            className="h-[300px] relative overflow-hidden"
+            className="h-[320px] relative overflow-hidden w-full max-w-xl"
         >
             <CarouselContent className="h-full">
                 {writers.map(writer => (
@@ -31,8 +31,8 @@ export default function WriterCarouselVertical() {
                     </CarouselItem>
                 ))}
             </CarouselContent>
-            <CarouselPrevious className="absolute left-1/2 -translate-x-1/2 -top-4 rotate-90" />
-            <CarouselNext className="absolute left-1/2 -translate-x-1/2 -bottom-4 rotate-90" />
+            <CarouselPrevious className="absolute left-1/2 -translate-x-1/2 -top-6 rotate-90 z-10" />
+            <CarouselNext className="absolute left-1/2 -translate-x-1/2 -bottom-6 rotate-90 z-10" />
         </Carousel>
     );
 }
