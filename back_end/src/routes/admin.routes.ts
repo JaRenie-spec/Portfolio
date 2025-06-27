@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {
-  createAdminHandler,
   getAllAdminsHandler,
   getAdminByIdHandler,
   updateAdminHandler,
@@ -10,13 +9,12 @@ import { requireRole } from "../middlewares/requireRole";
 
 const router = Router();
 
-router.get("/", requireRole(["admin", "superAdmin"]), getAllAdminsHandler);
-router.get("/:id", requireRole(["admin", "superAdmin"]), getAdminByIdHandler);
+router.get("/", requireRole(["admin"]), getAllAdminsHandler);
 
-router.post("/", requireRole(["admin", "superAdmin"]), createAdminHandler);
+router.get("/:id", requireRole(["admin"]), getAdminByIdHandler);
 
-router.put("/:id", requireRole(["admin", "superAdmin"]), updateAdminHandler);
+router.put("/:id", requireRole(["admin"]), updateAdminHandler);
 
-router.delete("/:id", requireRole(["admin", "superAdmin"]), deleteAdminHandler);
+router.delete("/:id", requireRole(["admin"]), deleteAdminHandler);
 
 export default router;

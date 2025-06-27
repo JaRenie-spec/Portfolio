@@ -1,9 +1,8 @@
-// FICHIER : src/controllers/user.controller.ts
 import { RequestHandler } from 'express';
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
-import { getKeycloakAdminToken } from '../services/keycloak.service';
 import { AuthenticatedRequest } from '../middlewares/protect';
+import { cp } from 'fs';
 
 const prisma = new PrismaClient();
 
@@ -49,53 +48,21 @@ export const me: RequestHandler = async (req, res) => {
  * (utilisateur authentifié)
  */
 export const updateMe: RequestHandler = async (req, res) => {
-  const sub = (req as AuthenticatedRequest).user.sub;
-  const { firstName, lastName } = req.body;
-  const user = await prisma.user.update({
-    where: { id: sub },
-    data: { firstName, lastName },
-  });
-  res.json(user);
-};
+  const { id } = req.params;
+	const { sub, roles } = (req as AuthenticatedRequest).user;
+	const { firstName, lastName } = req.body;
+	const isAdmin = roles.includes('admin');
 
-/**
- * POST /api/users/become-author
- * (client uniquement)
- */
-export const becomeAuthor: RequestHandler = async (req, res) => {
-  try {
-    const { sub: userId } = (req as AuthenticatedRequest).user;
+	if (!isAdmin && id !== sub) {
+		res.status(403).json({ error: 'Accès refusé : vous ne pouvez modifier que votre propre compte'});
+		return;
+	}
 
-    // 1️⃣ Récupérer le token admin Keycloak via client_credentials
-    const adminToken = await getKeycloakAdminToken();
-
-    // 2️⃣ Récupérer l’ID du rôle “author” (optionnel si tu connais déjà son UUID)
-    const roleRes = await axios.get(
-      `${process.env.KEYCLOAK_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/roles/author`,
-      { headers: { Authorization: `Bearer ${adminToken}` } }
-    );
-    const roleId = roleRes.data.id;
-
-    // 3️⃣ Assigner le rôle “author” à l’utilisateur
-    await axios.post(
-      `${process.env.KEYCLOAK_URL}/admin/realms/${process.env.KEYCLOAK_REALM}/users/${userId}/role-mappings/realm`,
-      [{ id: roleId, name: 'author' }],
-      {
-        headers: {
-          Authorization: `Bearer ${adminToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    // 4️⃣ (Optionnel) Synchroniser côté base de données
-    // … ton code Prisma pour créer la ligne Author
-
-    res.json({ success: true, authorId: roleId });
-  } catch (err: any) {
-    console.error('becomeAuthor error:', err.response?.data || err.message);
-    res.status(500).json({ error: 'Impossible de devenir auteur' });
-  }
+	const user = await prisma.user.update({
+		where: { id },
+		data: { firstName, lastName },
+	});
+	res.json(user);
 };
 
 /**
@@ -104,6 +71,14 @@ export const becomeAuthor: RequestHandler = async (req, res) => {
  */
 export const remove: RequestHandler = async (req, res) => {
   const { id } = req.params;
-  await prisma.user.delete({ where: { id } });
-  res.sendStatus(204);
+	const { sub, roles } = (req as AuthenticatedRequest).user;
+	const isAdmin = roles.includes('admin');
+
+	if (!isAdmin && id !== sub) {
+		res.status(403).json({ error: 'Accès refusé : vous ne pouvez supprimer que votre propre compte'});
+		return;
+	}
+
+	await prisma.user.delete({ where: { id } });
+	res.status(204).send();
 };

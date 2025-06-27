@@ -13,12 +13,15 @@ import {
 const router = Router();
 
 router.get('/', bookFindAll);
-router.get('/:id', bookFindOne);
 
-router.post('/', protect, requireRole(['author','admin','superadmin']), validateBook, bookCreate);
+router.get('/search', bookFindAll);
 
-router.put('/:id', protect, requireRole(['author','admin','superadmin']), validateBook, bookUpdate);
+router.get('/:id', protect, requireRole(['admin']), bookFindOne);
 
-router.delete('/:id', protect, requireRole(['admin','superadmin']), bookRemove);
+router.post('/', protect, requireRole(['author','admin']), validateBook, bookCreate);
+
+router.put('/:id', protect, requireRole(['author','admin']), validateBook, bookUpdate);
+
+router.delete('/:id', protect, requireRole(['admin', 'author']), bookRemove);
 
 export default router;
