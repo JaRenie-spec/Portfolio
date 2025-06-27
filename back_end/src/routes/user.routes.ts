@@ -13,7 +13,7 @@ const router = Router();
 
 router.get('/me', protect, me);
 
-router.put('/me', protect, updateMe);
+router.put('/:id', protect, updateMe);
 
 router.get('/:id', protect, requireRole(['admin']), findOne);
 
