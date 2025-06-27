@@ -6,7 +6,8 @@ import {
   findOne as authorFindOne,
   update as authorUpdate,
   remove as authorRemove,
-  findByPublicInfo
+  findByPublicInfo,
+  findPublicProfile
 } from '../controllers/author.controller';
 
 const router = Router();
@@ -14,6 +15,8 @@ const router = Router();
 router.get('/', authorFindAll);
 
 router.get('/search', findByPublicInfo);
+
+router.get('/public/:id', findPublicProfile);
 
 router.get('/:id', protect, requireRole(['admin']), authorFindOne);
 

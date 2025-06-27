@@ -80,3 +80,18 @@ export const deleteAuthor = async (id: string) => {
     throw new Error("Impossible de supprimer l’auteur.");
   }
 };
+
+// 🔹 Récupérer le profil public d'un auteur
+export const getPublicAuthorProfile = async (id: string) => {
+  try {
+    return await prisma.author.findUnique({
+      where: { id },
+      include: {
+        books: true, // Inclure les livres
+      },
+    });
+  } catch (err) {
+    console.error("Erreur récupération profil public de l’auteur :", err);
+    throw new Error("Erreur lors de la récupération du profil public de l’auteur.");
+  }
+};

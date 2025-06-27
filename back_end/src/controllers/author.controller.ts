@@ -48,6 +48,51 @@ export const findByPublicInfo: RequestHandler = async (req, res) => {
 
   res.json(authors);
 };
+
+/**
+ * GET /authors/public/:id
+ * Affiche les informations publiques de l'auteur, y compris ses livres
+ */
+export const findPublicProfile: RequestHandler = async (req, res): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const author = await prisma.author.findUnique({
+      where: { id },
+      include: {
+        books: {
+          select: {
+            title: true,
+            isbn: true,
+            description: true,
+            fileUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!author) {
+      res.status(404).json({ error: 'Auteur non trouvé' });
+      return;
+    }
+
+    // Formater la réponse pour ne donner que les informations publiques
+    const publicProfile = {
+      firstName: author.firstName,
+      lastName: author.lastName,
+      pseudo: author.pseudo,
+      bio: author.bio,
+      link: author.link,
+      books: author.books, // Liste des livres de l’auteur
+    };
+
+    res.json(publicProfile);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erreur lors de la récupération du profil' });
+  }
+};
+
 /**
  * PUT /authors/:id
  */
