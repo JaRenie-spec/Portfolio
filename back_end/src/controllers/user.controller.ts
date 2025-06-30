@@ -1,80 +1,84 @@
-import { Response } from "express";
-import { UserService } from "../services/UserService";
-import { AuthenticatedRequest } from "../middlewares/protect";
-import { RequestHandler } from "express-serve-static-core";
-import { resolve } from "path";
+import { RequestHandler } from 'express';
+import axios from 'axios';
+import { PrismaClient } from '@prisma/client';
+import { AuthenticatedRequest } from '../middlewares/protect';
+import { cp } from 'fs';
 
-const userService = new UserService();
+const prisma = new PrismaClient();
 
-export const createUser: RequestHandler = async (req, res, next): Promise<void> => {
-	try {
-		const result = await userService.create(req.body);
-		res.status(201).json(result);
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la création' });
-	}
-};
-
-export const updateUser: RequestHandler = async (req, res, next): Promise<void> => {
-	try {
-		const userId = req.params.id;
-		const result = await userService.update(userId, req.body);
-		res.status(200).json(result);
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la mise à jour ' });
-	}
-};
-
-export const updateOwnProfile: RequestHandler = async (req, res, next): Promise<void> => {
-	const { user } = req as AuthenticatedRequest;
-
-	if (!user?.sub) {
-		res.status(401).json({ error: 'Non autorisé' });
-		return;
-	}
-
-	const userId = user.sub;
-
-	try {
-		const result = await userService.update(userId, req.body);
-		res.status(200).json(result);
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la mise à jour du profil' });
-	}
-};
-
-export const deleteUser: RequestHandler = async (req, res, next): Promise<void> => {
-	try {
-		const userId = req.params.id;
-		await userService.delete(userId);
-		res.status(200).json({ message: 'Utilisateur supprimé' });
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la suppression' });
-	}
-};
-
-export const deleteOwnAccount: RequestHandler = async (req, res, next): Promise<void> => {
-	const { user } = req as AuthenticatedRequest;
-	if (!user?.sub) {
-		res.status(401).json({ error: 'Non autorisé' });
-		return;
-	}
-
-	const userId = user.sub;
-
-	try {
-		await userService.delete(userId);
-		res.status(200).json({ message: 'Compte supprimé' });
-	} catch (error) {
-		res.status(500).json({ error: 'Erreur lors de la suppression de votre compte' });
-	}
+/**
+ * GET /api/users
+ * (superadmin uniquement)
+ */
+export const findAll: RequestHandler = async (_req, res) => {
+  const users = await prisma.user.findMany();
+  res.json(users);
 };
 
 /**
- * On est passés à des handlers async qui retournent toujours void (Promise<void>)
- * pour coller à la signature Express : on n’utilise plus return res… (qui renvoie un Response)
- * mais on fait simplement res.status().json(…) puis on quitte la fonction.
- *
- * On a aussi séparé le check if (!user?.sub) avant de déclarer const userId = user.sub,
- * de sorte que userId est toujours de type string pur et plus string | undefined.
+ * GET /api/users/:id
+ * (admin & superadmin uniquement)
  */
+export const findOne: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) {
+    res.status(404).json({ error: 'Utilisateur non trouvé' });
+    return;
+  }
+  res.json(user);
+};
+
+/**
+ * GET /api/users/me
+ * (utilisateur authentifié)
+ */
+export const me: RequestHandler = async (req, res) => {
+  const sub = (req as AuthenticatedRequest).user.sub;
+  const user = await prisma.user.findUnique({ where: { id: sub } });
+  if (!user) {
+    res.status(404).json({ error: 'Utilisateur non trouvé' });
+    return;
+  }
+  res.json(user);
+};
+
+/**
+ * PUT /api/users/me
+ * (utilisateur authentifié)
+ */
+export const updateMe: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+	const { sub, roles } = (req as AuthenticatedRequest).user;
+	const { firstName, lastName } = req.body;
+	const isAdmin = roles.includes('admin');
+
+	if (!isAdmin && id !== sub) {
+		res.status(403).json({ error: 'Accès refusé : vous ne pouvez modifier que votre propre compte'});
+		return;
+	}
+
+	const user = await prisma.user.update({
+		where: { id },
+		data: { firstName, lastName },
+	});
+	res.json(user);
+};
+
+/**
+ * DELETE /api/users/:id
+ * (admin & superadmin uniquement)
+ */
+export const remove: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+	const { sub, roles } = (req as AuthenticatedRequest).user;
+	const isAdmin = roles.includes('admin');
+
+	if (!isAdmin && id !== sub) {
+		res.status(403).json({ error: 'Accès refusé : vous ne pouvez supprimer que votre propre compte'});
+		return;
+	}
+
+	await prisma.user.delete({ where: { id } });
+	res.status(204).send();
+};

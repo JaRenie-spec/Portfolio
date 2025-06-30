@@ -1,17 +1,6 @@
 import { Request, Response } from "express";
 import * as adminService from "../services/admin.service";
 
-// Créer un admin
-export const createAdminHandler = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const data = await adminService.createAdmin(req.body);
-    res.status(201).json({ success: true, data });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    res.status(500).json({ success: false, error: message });
-		return;
-  }
-};
 
 // Récupérer tous les admins
 export const getAllAdminsHandler = async (_req: Request, res: Response): Promise<void> => {

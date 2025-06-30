@@ -3,21 +3,6 @@ import { CreateAuthorDTO } from "../types";
 
 const prisma = new PrismaClient();
 
-// 🔹 Créer un auteur
-export const createAuthor = async (data: CreateAuthorDTO) => {
-  try {
-    return await prisma.author.create({
-      data: {
-        ...data,
-        createdByAdminId: data.createdByAdminId ?? null,
-      },
-    });
-  } catch (err) {
-    console.error("Erreur création auteur :", err);
-    throw new Error("Impossible de créer l’auteur.");
-  }
-};
-
 // 🔹 Lister tous les auteurs (avec relations)
 export const getAllAuthors = async () => {
   try {
@@ -37,10 +22,10 @@ export const getAllAuthors = async () => {
 };
 
 // 🔹 Récupérer un auteur par ID (avec relations)
-export const getAuthorById = async (id: number) => {
+export const getAuthorById = async (id: string) => {
   try {
     const author = await prisma.author.findFirst({
-      where: { id: id.toString(), deletedAt: null },
+      where: { id: id, deletedAt: null },
       include: {
         books: true,
         events: true,
@@ -64,12 +49,12 @@ export const getAuthorById = async (id: number) => {
 
 // 🔹 Mettre à jour un auteur
 export const updateAuthor = async (
-  id: number,
+  id: string,
   data: Partial<CreateAuthorDTO>
 ) => {
   try {
     return await prisma.author.update({
-      where: { id: id.toString() },
+      where: { id: id },
       data: {
         ...data,
         updatedAt: new Date(),
@@ -82,10 +67,10 @@ export const updateAuthor = async (
 };
 
 // 🔹 Supprimer un auteur (soft delete)
-export const deleteAuthor = async (id: number) => {
+export const deleteAuthor = async (id: string) => {
   try {
     return await prisma.author.update({
-      where: { id: id.toString() },
+      where: { id: id },
       data: {
         deletedAt: new Date(),
       },
@@ -93,69 +78,5 @@ export const deleteAuthor = async (id: number) => {
   } catch (err) {
     console.error("Erreur suppression auteur :", err);
     throw new Error("Impossible de supprimer l’auteur.");
-  }
-};
-
-// 🔎 Chercher par pseudo
-export const findAuthorByPseudo = async (pseudo: string) => {
-  try {
-    return await prisma.author.findFirst({
-      where: {
-        pseudo,
-        deletedAt: null,
-      },
-      include: {
-        books: true,
-        events: true,
-        reviews: true,
-      },
-    });
-  } catch (err) {
-    console.error("Erreur recherche par pseudo :", err);
-    throw new Error("Erreur recherche par pseudo.");
-  }
-};
-
-// 🔎 Chercher par email
-export const findAuthorByEmail = async (email: string) => {
-  try {
-    return await prisma.author.findUnique({
-      where: {
-        email,
-      },
-      include: {
-        books: true,
-        events: true,
-        reviews: true,
-      },
-    });
-  } catch (err) {
-    console.error("Erreur recherche par email :", err);
-    throw new Error("Erreur recherche par email.");
-  }
-};
-
-// 🔎 Chercher tous les auteurs ayant écrit un livre contenant un mot-clé
-export const findAuthorsByBookTitle = async (title: string) => {
-  try {
-    return await prisma.author.findMany({
-      where: {
-        deletedAt: null,
-        books: {
-          some: {
-            title: {
-              contains: title,
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-      include: {
-        books: true,
-      },
-    });
-  } catch (err) {
-    console.error("Erreur recherche auteurs par titre de livre :", err);
-    throw new Error("Erreur recherche auteurs par livre.");
   }
 };

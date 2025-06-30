@@ -1,21 +1,24 @@
 import { Router } from 'express';
-import { validateBody } from '../middlewares/validateBody';
-import { CreateUserSchema, UpdateUserSchema } from '../types/user.types';
-import { protect } from '../middlewares/protect';
+import { requireRole } from '../middlewares/requireRole';
 import {
-  createUser,
-  updateUser,
-  updateOwnProfile,
-  deleteOwnAccount,
-  deleteUser,
+  me,
+  updateMe,
+  findOne,
+  remove,
+  findAll,
 } from '../controllers/user.controller';
+import { protect } from '../middlewares/protect';
 
 const router = Router();
 
-router.post('/', validateBody(CreateUserSchema), createUser);
-router.put('/:id', validateBody(UpdateUserSchema), updateUser);
-router.put('/me', protect, validateBody(UpdateUserSchema), updateOwnProfile);
-router.delete('/:id', deleteUser);
-router.delete('/me', protect, deleteOwnAccount);
+router.get('/me', protect, me);
+
+router.put('/:id', protect, updateMe);
+
+router.get('/:id', protect, requireRole(['admin']), findOne);
+
+router.delete('/:id', protect, requireRole(['client','admin']), remove);
+
+router.get('/', protect, requireRole(['admin']), findAll);
 
 export default router;

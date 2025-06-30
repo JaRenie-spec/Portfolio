@@ -1,80 +1,114 @@
 import { RequestHandler } from 'express';
-import * as eventService from '../services/event.service';
-import { createEventSchema, updateEventSchema } from '../types/event.types';
+import { PrismaClient } from '@prisma/client';
+import { AuthenticatedRequest } from '../middlewares/protect';
 
-export const createEvent: RequestHandler = async (req, res) => {
-  try {
-    const parsed = createEventSchema.parse(req.body);
-    const event = await eventService.createEvent(parsed);
-    res.status(201).json(event);
-  } catch (error: any) {
-    if (error.name === 'ZodError') {
-      res.status(400).json({ errors: error.errors });
-      return;
-    }
-    res.status(500).json({ error: 'Failed to create event' });
-  }
+const prisma = new PrismaClient();
+
+/**
+ * GET /events
+ */
+export const findAll: RequestHandler = async (_req, res) => {
+  const events = await prisma.event.findMany();
+  res.json(events);
 };
 
-export const getAllEvents: RequestHandler = async (_req, res) => {
-  try {
-    const events = await eventService.getAllEvents();
-    res.status(200).json(events);
-  } catch (error) {
-    console.error('Error in getAll:', error);
-    res.status(500).json({ error: 'Failed to fetch events' });
-  }
-};
-
-export const getEventById: RequestHandler = async (req, res) => {
-  const id = req.params.id;
-  if (!id) {
-    res.status(400).json({ error: 'Invalid event ID' });
+/**
+ * GET /events/:id
+ */
+export const findOne: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const event = await prisma.event.findUnique({ where: { id } });
+  if (!event) {
+    res.status(404).json({ error: 'Événement non trouvé' });
     return;
   }
-  try {
-    const event = await eventService.getEventById(id);
-    if (!event) {
-      res.status(404).json({ error: 'Event not found' });
-      return;
-    }
-    res.status(200).json(event);
-  } catch (error) {
-    console.error('Error in getById:', error);
-    res.status(500).json({ error: 'Failed to fetch event' });
-  }
+  res.json(event);
 };
 
-export const updateEvent: RequestHandler = async (req, res) => {
-  const id = req.params.id;
-  if (!id) {
-    res.status(400).json({ error: 'Invalid event ID' });
-    return;
+/**
+ * POST /events
+ */
+export const create: RequestHandler = async (req, res) => {
+  const { title, description, dateEvent, authorId: bodyAuthorId } = req.body;
+  const { sub, roles } = (req as AuthenticatedRequest).user;
+  const isAdmin = roles.includes('admin');
+
+  // un auteur ne peut pas créer pour un autre auteur
+  if (!isAdmin && bodyAuthorId && bodyAuthorId !== sub) {
+    res.status(403).json({ error: 'Impossible de créer un événement pour un autre auteur' });
+		return;
   }
-  try {
-    const parsed = updateEventSchema.parse(req.body);
-    const event = await eventService.updateEvent(id, parsed);
-    res.status(200).json(event);
-  } catch (error: any) {
-    if (error.name === 'ZodError') {
-      res.status(400).json({ errors: error.errors });
-      return;
-    }
-    res.status(500).json({ error: 'Failed to update event' });
-  }
+
+  const finalAuthorId = isAdmin
+    ? bodyAuthorId || sub
+    : sub;
+
+  const newEvent = await prisma.event.create({
+    data: { title, description, dateEvent, authorId: finalAuthorId }
+  });
+
+  res.status(201).json(newEvent);
 };
 
-export const deleteEvent: RequestHandler = async (req, res) => {
-  const id = req.params.id;
-  if (!id) {
-    res.status(400).json({ error: 'Invalid event ID' });
-    return;
+/**
+ * PUT /events/:id
+ */
+export const update: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, dateEvent, authorId: bodyAuthorId } = req.body;
+  const { sub, roles } = (req as AuthenticatedRequest).user;
+  const isAdmin = roles.includes('admin');
+
+  // 1️⃣ récupérer l’événement
+  const event = await prisma.event.findUnique({ where: { id } });
+  if (!event) {
+    res.status(404).json({ error: 'Événement non trouvé' });
+		return;
   }
-  try {
-    const event = await eventService.softDeleteEvent(id);
-    res.status(200).json({ message: 'Event deleted', event });
-  } catch (error) {
-    console.error('Error in remove:', error);
-    res.status(500).json({ error: 'Failed to delete event' });
+
+  // 2️⃣ si pas admin, vérifier proprio
+  if (!isAdmin && event.authorId !== sub) {
+    res.status(403).json({ error: 'Impossible de modifier cet événement' });
+		return;
   }
+
+  // 3️⃣ un auteur ne peut pas réassigner à un autre authorId
+  if (!isAdmin && bodyAuthorId && bodyAuthorId !== sub) {
+    res.status(403).json({ error: 'Impossible de changer l’auteur de l’événement' });
+		return;
+  }
+
+  const finalAuthorId = isAdmin
+    ? bodyAuthorId || event.authorId
+    : sub;
+
+  const updated = await prisma.event.update({
+    where: { id },
+    data: { title, description, dateEvent, authorId: finalAuthorId }
+  });
+
+  res.json(updated);
+};
+
+/**
+ * DELETE /events/:id uniquement l'auteur
+ */
+export const remove: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const { sub, roles } = (req as AuthenticatedRequest).user;
+  const isAdmin = roles.includes('admin');
+
+  const event = await prisma.event.findUnique({ where: { id } });
+  if (!event) {
+    res.status(404).json({ error: 'Événement non trouvé' });
+		return;
+  }
+
+  if (!isAdmin && event.authorId !== sub) {
+    res.status(403).json({ error: 'Impossible de supprimer cet événement' });
+		return;
+  }
+
+  await prisma.event.delete({ where: { id } });
+  res.sendStatus(204);
 };

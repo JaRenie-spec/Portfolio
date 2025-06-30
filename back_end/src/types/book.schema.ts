@@ -6,7 +6,7 @@ export const createBookSchema = z.object({
   price: z.number().positive("Le prix doit être positif"),
   description: z.string().optional(),
   rating: z.number().min(0).max(5).optional(),
-  fileUrl: z.string().optional(),
+  fileUrl: z.string(),
   authorId: z.string().uuid(),
   createdByAdminId: z.string().uuid().optional(),
 });
@@ -22,6 +22,5 @@ export const updateBookSchema = z.object({
   createdByAdminId: z.string().uuid().optional(),
 });
 
-// AJOUTE CECI :
 export type CreateBookInput = z.infer<typeof createBookSchema>;
 export type UpdateBookInput = z.infer<typeof updateBookSchema>;

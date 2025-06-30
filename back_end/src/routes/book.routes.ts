@@ -1,247 +1,27 @@
-import { Router } from "express";
-import multer from "multer";
+import { Router } from 'express';
+import { protect } from '../middlewares/protect';
+import { requireRole } from '../middlewares/requireRole';
+import { validateBook } from '../middlewares/book.validator';
 import {
-  createBookHandler,
-  getAllBooksHandler,
-  getBookByIdHandler,
-  updateBookHandler,
-  deleteBookHandler,
-  searchBooksByTitleHandler,
-  uploadBookFileHandler,
-  searchBooksByAuthorHandler,
-} from "../controllers/book.controller";
-import { validateCreateBook, validateUpdateBook } from "../middlewares/book.validator";
-import { requireRole } from "../middlewares/requireRole";
+  findAll as bookFindAll,
+  findOne as bookFindOne,
+  create as bookCreate,
+  update as bookUpdate,
+  remove as bookRemove
+} from '../controllers/book.controller';
 
 const router = Router();
-const upload = multer({ dest: "uploads/" });
 
-/**
- * @openapi
- * /api/books:
- *   post:
- *     summary: Crée un nouveau livre
- *     tags:
- *       - Books
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *               - isbn
- *               - price
- *               - authorId
- *             properties:
- *               title:
- *                 type: string
- *               isbn:
- *                 type: string
- *               price:
- *                 type: number
- *               description:
- *                 type: string
- *               rating:
- *                 type: number
- *                 minimum: 0
- *                 maximum: 5
- *               fileUrl:
- *                 type: string
- *               authorId:
- *                 type: string
- *                 format: uuid
- *               createdByAdminId:
- *                 type: string
- *                 format: uuid
- *     responses:
- *       201:
- *         description: Livre créé
- */
-router.post(
-  "/",
-  requireRole(["admin", "author"]),
-  validateCreateBook,
-  createBookHandler
-);
+router.get('/', bookFindAll);
 
-/**
- * @openapi
- * /api/books:
- *   get:
- *     summary: Récupère tous les livres
- *     tags:
- *       - Books
- *     responses:
- *       200:
- *         description: Liste des livres
- */
-router.get("/", getAllBooksHandler);
+router.get('/search', bookFindAll);
 
-/**
- * @openapi
- * /api/books/search:
- *   get:
- *     summary: Recherche des livres par titre
- *     tags:
- *       - Books
- *     parameters:
- *       - in: query
- *         name: title
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Résultats de la recherche
- */
-router.get("/search", searchBooksByTitleHandler);
+router.get('/:id', protect, requireRole(['admin']), bookFindOne);
 
-/**
- * @openapi
- * /api/books/author/{authorId}:
- *   get:
- *     summary: Recherche des livres par auteur
- *     tags:
- *       - Books
- *     parameters:
- *       - in: path
- *         name: authorId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: Livres de l’auteur
- */
-router.get("/author/:authorId", searchBooksByAuthorHandler);
+router.post('/', protect, requireRole(['author','admin']), validateBook, bookCreate);
 
-/**
- * @openapi
- * /api/books/{id}:
- *   get:
- *     summary: Récupère un livre par ID
- *     tags:
- *       - Books
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: Livre trouvé
- */
-router.get("/:id", getBookByIdHandler);
+router.put('/:id', protect, requireRole(['author','admin']), validateBook, bookUpdate);
 
-/**
- * @openapi
- * /api/books/{id}:
- *   put:
- *     summary: Met à jour un livre
- *     tags:
- *       - Books
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               isbn:
- *                 type: string
- *               price:
- *                 type: number
- *               description:
- *                 type: string
- *               rating:
- *                 type: number
- *                 minimum: 0
- *                 maximum: 5
- *               fileUrl:
- *                 type: string
- *               authorId:
- *                 type: string
- *                 format: uuid
- *               createdByAdminId:
- *                 type: string
- *                 format: uuid
- *     responses:
- *       200:
- *         description: Livre mis à jour
- */
-router.put(
-  "/:id",
-  requireRole(["admin", "author"]),
-  validateUpdateBook,
-  updateBookHandler
-);
-
-/**
- * @openapi
- * /api/books/{id}:
- *   delete:
- *     summary: Supprime un livre
- *     tags:
- *       - Books
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       204:
- *         description: Livre supprimé
- */
-router.delete("/:id", requireRole(["admin"]), deleteBookHandler);
-
-/**
- * @openapi
- * /api/books/{id}/upload:
- *   post:
- *     summary: Upload un fichier pour un livre
- *     tags:
- *       - Books
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *     responses:
- *       200:
- *         description: Fichier uploadé
- */
-router.post(
-  "/:id/upload",
-  requireRole(["admin", "author"]),
-  upload.single("file"),
-  uploadBookFileHandler
-);
+router.delete('/:id', protect, requireRole(['admin', 'author']), bookRemove);
 
 export default router;
