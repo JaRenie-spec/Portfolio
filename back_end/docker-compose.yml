@@ -56,19 +56,19 @@ services:
 
   frontend:
     build:
-      context: ../front_end/chapter_one
+      context: ../front_end
       dockerfile: Dockerfile
     container_name: my-frontend
     ports:
       - "3001:3000"
     depends_on:
-      - app
+      - backend
     env_file:
-      - ../front_end/chapter_one/.env.local
+      - ../front_end/.env.local
     environment:
-      NEXT_PUBLIC_API_URL: http://app:3000
+      NEXT_PUBLIC_API_URL: http://backend:3000
     volumes:
-      - ../front_end/chapter_one:/app
+      - ../front_end:/app
     working_dir: /app
     restart: unless-stopped
     command: >
@@ -79,6 +79,7 @@ services:
 
 volumes:
   postgres_data:
+
 
 networks:
   back_end-network:

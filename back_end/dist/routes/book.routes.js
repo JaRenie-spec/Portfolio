@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const protect_1 = require("../middlewares/protect");
+const requireRole_1 = require("../middlewares/requireRole");
+const book_validator_1 = require("../middlewares/book.validator");
+const book_controller_1 = require("../controllers/book.controller");
+const router = (0, express_1.Router)();
+router.get('/', book_controller_1.findAll);
+router.get('/search', book_controller_1.findAll);
+router.get('/:id', protect_1.protect, (0, requireRole_1.requireRole)(['admin']), book_controller_1.findOne);
+router.post('/', protect_1.protect, (0, requireRole_1.requireRole)(['author', 'admin']), book_validator_1.validateBook, book_controller_1.create);
+router.put('/:id', protect_1.protect, (0, requireRole_1.requireRole)(['author', 'admin']), book_validator_1.validateBook, book_controller_1.update);
+router.delete('/:id', protect_1.protect, (0, requireRole_1.requireRole)(['admin', 'author']), book_controller_1.remove);
+exports.default = router;
