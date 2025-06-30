@@ -235,7 +235,7 @@ export default function Writers() {
                                         {/* Actions */}
                                         <div className="flex gap-2">
                                             <Button size="sm" className="flex-1">
-                                                Voir les livres
+                                                Voir le profil
                                             </Button>
                                             <Button variant="outline" size="sm">
                                                 <Mail className="h-4 w-4" />
