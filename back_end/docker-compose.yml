@@ -54,8 +54,32 @@ services:
     networks:
       - back_end-network
 
+  frontend:
+    build:
+      context: ../front_end
+      dockerfile: Dockerfile
+    container_name: my-frontend
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+    env_file:
+      - ../front_end/.env.local
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:3000
+    volumes:
+      - ../front_end:/app
+    working_dir: /app
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo '🚀 Starting frontend' &&
+        npm run dev
+      "
+
 volumes:
   postgres_data:
+
 
 networks:
   back_end-network:

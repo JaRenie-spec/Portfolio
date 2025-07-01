@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.softDeletePurchase = exports.updatePurchase = exports.getPurchaseById = exports.getAllPurchases = exports.createPurchase = void 0;
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
+const createPurchase = (data) => prisma.purchase.create({ data });
+exports.createPurchase = createPurchase;
+const getAllPurchases = () => prisma.purchase.findMany();
+exports.getAllPurchases = getAllPurchases;
+const getPurchaseById = (id) => prisma.purchase.findUnique({ where: { id } });
+exports.getPurchaseById = getPurchaseById;
+const updatePurchase = (id, data) => prisma.purchase.update({ where: { id }, data });
+exports.updatePurchase = updatePurchase;
+const softDeletePurchase = (id) => prisma.purchase.update({ where: { id }, data: { deletedAt: new Date() } });
+exports.softDeletePurchase = softDeletePurchase;
