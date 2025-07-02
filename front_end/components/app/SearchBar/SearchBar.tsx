@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,11 +9,17 @@ interface SearchBarProps {
     placeholder?: string
     onSearch?: (query: string) => void
     className?: string
+    defaultValue?: string
 }
 
-export function SearchBar({ placeholder = "Rechercher des livres, auteurs...", onSearch, className = "" }: SearchBarProps) {
-    const [query, setQuery] = useState('')
+export function SearchBar({ placeholder = "Rechercher des livres, auteurs...", onSearch, className = "", defaultValue = "" }: SearchBarProps) {
+    const [query, setQuery] = useState(defaultValue)
     const [isExpanded, setIsExpanded] = useState(false)
+
+    // Mettre à jour la valeur de recherche quand defaultValue change
+    useEffect(() => {
+        setQuery(defaultValue)
+    }, [defaultValue])
 
     const handleSearch = () => {
         if (query.trim() && onSearch) {
