@@ -55,12 +55,6 @@ export default function AuthorCard({ id, pseudo, firstName, lastName, bio, avata
                             Profil
                         </Link>
                     </Button>
-                    <Button asChild className="flex-1">
-                        <Link href={`/authors/${id}/books`}>
-                            <BookOpen className="h-4 w-4 mr-2" />
-                            Livres
-                        </Link>
-                    </Button>
                 </div>
             </CardFooter>
         </Card>
