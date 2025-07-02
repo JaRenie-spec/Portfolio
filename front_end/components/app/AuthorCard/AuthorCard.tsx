@@ -9,14 +9,12 @@ import Link from 'next/link'
 interface AuthorCardProps {
     id: string
     pseudo: string
-    firstName: string
-    lastName: string
     bio?: string
     avatar?: string
     booksCount: number
 }
 
-export default function AuthorCard({ id, pseudo, firstName, lastName, bio, avatar, booksCount }: AuthorCardProps) {
+export default function AuthorCard({ id, pseudo, bio, avatar, booksCount }: AuthorCardProps) {
     const initials = typeof pseudo === 'string' && pseudo.trim()
         ? pseudo.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2)
         : '??'

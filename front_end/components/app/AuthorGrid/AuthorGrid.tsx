@@ -59,8 +59,6 @@ export default function AuthorGrid() {
                         key={author.id}
                         id={author.id}
                         pseudo={author.pseudo}
-                        firstName={author.firstName}
-                        lastName={author.lastName}
                         bio={author.bio}
                         avatar={author.avatar}
                         booksCount={author.books?.length || 0}
