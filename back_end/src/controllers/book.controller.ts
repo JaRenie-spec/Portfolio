@@ -22,7 +22,13 @@ type BookWithAuthor = {
  * GET /books
  */
 export const findAll: RequestHandler = async (_req, res) => {
-  const books = await prisma.book.findMany();
+  const books = await prisma.book.findMany({
+		include: {
+			author: {
+				select: { pseudo: true, firstName: true, lastName: true }
+			}
+		}
+	});
   res.json(books);
 };
 
@@ -31,7 +37,10 @@ export const findAll: RequestHandler = async (_req, res) => {
  */
 export const findOne: RequestHandler = async (req, res) => {
   const { id } = req.params;
-  const book = await prisma.book.findUnique({ where: { id } });
+  const book = await prisma.book.findUnique({
+  where: { id },
+  include: { author: { select: { pseudo: true } } }
+});
   if (!book) {
     res.status(404).json({ error: 'Livre non trouvé' });
     return;

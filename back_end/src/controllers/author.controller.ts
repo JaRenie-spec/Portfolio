@@ -8,7 +8,9 @@ const prisma = new PrismaClient();
  * GET /authors
  */
 export const findAll: RequestHandler = async (_req, res) => {
-  const authors = await prisma.author.findMany();
+  const authors = await prisma.author.findMany({
+    include: { books: true }
+  });
   res.json(authors);
 };
 
