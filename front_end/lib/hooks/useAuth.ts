@@ -27,50 +27,54 @@ export function useAuth(): UseAuthReturn {
         setUser(currentUser)
         setIsAuthenticated(authenticated)
 
-        // Vérifier si le token est expiré et le rafraîchir si nécessaire
+        // Rafraîchir si token expiré
         if (authenticated && keycloakService.isTokenExpired()) {
           refreshToken()
         }
       } catch (error) {
-        console.error('Erreur lors de l\'initialisation de l\'authentification:', error)
-        // En cas d'erreur, déconnecter l'utilisateur
+        console.error("Erreur initialisation auth:", error)
         setUser(null)
         setIsAuthenticated(false)
       } finally {
         setIsLoading(false)
       }
     }
-
     initAuth()
   }, [])
 
-  // Fonction de connexion
+  // Connexion
   const login = useCallback(() => {
     keycloakService.login()
   }, [])
 
-  // Fonction de déconnexion
+  // Déconnexion
   const logout = useCallback(() => {
     keycloakService.logout()
     setUser(null)
     setIsAuthenticated(false)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('authToken')
+    }
   }, [])
 
-  // Fonction de rafraîchissement du token
+  // Rafraîchir le token
   const refreshToken = useCallback(async () => {
     try {
       setIsLoading(true)
       await keycloakService.refreshAccessToken()
 
-      // Mettre à jour l'état après le rafraîchissement
       const currentUser = keycloakService.getCurrentUser()
       const authenticated = keycloakService.isAuthenticated()
-
       setUser(currentUser)
       setIsAuthenticated(authenticated)
+
+      // Stocker le token d'accès
+      const token = keycloakService.getAccessToken()
+      if (token && typeof window !== 'undefined') {
+        localStorage.setItem('authToken', token)
+      }
     } catch (error) {
-      console.error('Erreur lors du rafraîchissement du token:', error)
-      // En cas d'erreur, déconnecter l'utilisateur
+      console.error('Erreur rafraîchissement token:', error)
       setUser(null)
       setIsAuthenticated(false)
     } finally {
@@ -78,16 +82,16 @@ export function useAuth(): UseAuthReturn {
     }
   }, [])
 
-  // Écouter les changements d'URL pour gérer le callback Keycloak
+  // Callback OIDC de Keycloak
   useEffect(() => {
     const handleUrlChange = () => {
-      const urlParams = new URLSearchParams(window.location.search)
-      const code = urlParams.get('code')
-      const state = urlParams.get('state')
-      const error = urlParams.get('error')
+      const params = new URLSearchParams(window.location.search)
+      const code = params.get('code')
+      const state = params.get('state')
+      const error = params.get('error')
 
       if (error) {
-        console.error('Erreur d\'authentification Keycloak:', error)
+        console.error("Erreur Keycloak:", error)
         setIsLoading(false)
         return
       }
@@ -95,29 +99,31 @@ export function useAuth(): UseAuthReturn {
       if (code && state) {
         setIsLoading(true)
         keycloakService.handleCallback(code, state)
-          .then((user) => {
-            setUser(user)
+          .then(() => {
+            const currentUser = keycloakService.getCurrentUser()
+            setUser(currentUser)
             setIsAuthenticated(true)
-            // Nettoyer l'URL
+            // Stocker token
+            const token = keycloakService.getAccessToken()
+            if (token && typeof window !== 'undefined') {
+              localStorage.setItem('authToken', token)
+            }
             window.history.replaceState({}, document.title, window.location.pathname)
           })
-          .catch((error) => {
-            console.error('Erreur lors de la gestion du callback:', error)
+          .catch((err) => {
+            console.error('Erreur callback Keycloak:', err)
             setUser(null)
             setIsAuthenticated(false)
           })
-          .finally(() => {
-            setIsLoading(false)
-          })
+          .finally(() => setIsLoading(false))
       }
     }
 
-    // Vérifier l'URL au chargement
     handleUrlChange()
-
-    // Écouter les changements d'URL
     window.addEventListener('popstate', handleUrlChange)
-    return () => window.removeEventListener('popstate', handleUrlChange)
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange)
+    }
   }, [])
 
   return {
@@ -126,6 +132,6 @@ export function useAuth(): UseAuthReturn {
     isLoading,
     login,
     logout,
-    refreshToken
+    refreshToken,
   }
 }

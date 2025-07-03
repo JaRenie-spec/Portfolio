@@ -1,23 +1,26 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import BookCard from '../BookCard/BookCard';
-import type { Book } from '@/lib/api';
-import { bookService } from '@/lib/api';
-import { useApi } from '@/lib/hooks/useApi';
+import { useEffect } from 'react'
+import Link from 'next/link'
+import BookCard from '../BookCard/BookCard'
+import type { Book } from '@/lib/api'
+import { bookService } from '@/lib/api'
+import { useApi } from '@/lib/hooks/useApi'
 
 export default function BookGrid() {
-  const { data: books, loading, error, execute } = useApi<Book[]>(bookService.getAll);
+  const { data: books, loading, error, execute } = useApi<Book[]>(bookService.getAll)
 
-  useEffect(() => { execute(); }, [execute]);
+  useEffect(() => {
+    execute()
+  }, [execute])
 
   const handleAddToCart = (bookId: string) => {
-    console.log(`Add book ${bookId} to cart`);
-  };
+    console.log(`Add book ${bookId} to cart`)
+  }
 
   const handleFavorite = (bookId: string) => {
-    console.log(`Add book ${bookId} to favorites`);
-  };
+    console.log(`Add book ${bookId} to favorites`)
+  }
 
   if (loading) {
     return (
@@ -30,7 +33,7 @@ export default function BookGrid() {
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -41,35 +44,44 @@ export default function BookGrid() {
         </div>
         <h3 className="text-lg font-semibold mb-2">Erreur de chargement</h3>
         <p className="text-muted-foreground mb-4">{error}</p>
-        <button onClick={() => execute()} className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+        <button
+          onClick={() => execute()}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
           Réessayer
         </button>
       </div>
-    );
+    )
   }
 
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {books && books.length > 0 ? (
         books.map((book) => (
-          <BookCard
-            key={book.id}
-            title={book.title}
-            author={book.author?.pseudo ?? 'Auteur inconnu'}
-            rating={book.rating || 0}
-            price={book.price}
-            coverColor={getRandomCoverColor()}
-            onAddToCart={() => handleAddToCart(book.id)}
-            onFavorite={() => handleFavorite(book.id)}
-          />
+          <Link key={book.id} href={`/books/${book.id}`} className="block">
+            <BookCard
+              title={book.title}
+              author={book.author?.pseudo ?? 'Auteur inconnu'}
+              rating={book.rating || 0}
+              price={book.price}
+              coverColor={getRandomCoverColor()}
+              onAddToCart={() => handleAddToCart(book.id)}
+              onFavorite={() => handleFavorite(book.id)}
+            />
+          </Link>
         ))
       ) : (
         <div className="col-span-full text-center py-12">
-          {/* message "Aucun livre" */}
+          {/* message "Aucun livre trouvé" */}
+          <div className="text-muted-foreground mb-4">
+            {/* icône info */}
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Aucun livre trouvé</h3>
+          <p className="text-muted-foreground">Il semble qu'il n'y ait pas encore de livres disponibles.</p>
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function getRandomCoverColor(): string {
@@ -81,7 +93,7 @@ function getRandomCoverColor(): string {
     "from-purple-100 to-indigo-100",
     "from-emerald-100 to-teal-100",
     "from-cyan-100 to-blue-100",
-    "from-indigo-100 to-purple-100"
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
+    "from-indigo-100 to-purple-100",
+  ]
+  return colors[Math.floor(Math.random() * colors.length)]
 }

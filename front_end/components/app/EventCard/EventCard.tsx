@@ -11,7 +11,7 @@ interface EventCardProps {
   id: string
   title: string
   description: string
-  date: string
+  dateEvent: string
   location?: string
   author?: Author
   isOnline?: boolean
@@ -22,13 +22,13 @@ export default function EventCard({
   id,
   title,
   description,
-  date,
+  dateEvent,
   location,
   author,
   isOnline,
   maxParticipants
 }: EventCardProps) {
-  const eventDate = new Date(date)
+  const eventDate = new Date(dateEvent)
   const formattedDate = eventDate.toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
@@ -61,7 +61,7 @@ export default function EventCard({
         {author && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <User className="h-4 w-4" />
-            <span>Par {author.name}</span>
+            <span>Par {author.pseudo}</span>
           </div>
         )}
       </CardHeader>

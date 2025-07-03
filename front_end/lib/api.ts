@@ -1,7 +1,9 @@
-// Configuration de l'API
+// lib/api.ts
+
+// Configuration de l'URL de base de l'API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-// Types pour les réponses API
+// Structure standard des réponses de l'API
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -9,7 +11,7 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-// Types pour les entités
+// Entités du domaine
 export interface Author {
   id: string;
   pseudo: string;
@@ -22,10 +24,11 @@ export interface Author {
 export interface Book {
   id: string;
   title: string;
-  author?: Author;
+  author: Author;
   rating?: number;
   price: number;
   coverImage?: string;
+	fileUrl?: string,
   genre?: string;
   description?: string;
   publishedAt?: string;
@@ -45,7 +48,7 @@ export interface Event {
   id: string;
   title: string;
   description: string;
-  date: string;
+  dateEvent: string;
   location?: string;
   author?: Author;
   isOnline?: boolean;
@@ -61,7 +64,6 @@ export interface Review {
   createdAt: string;
 }
 
-// Types for creating reviews (what the API expects)
 export interface CreateReviewData {
   bookId: string;
   authorId: string;
@@ -78,7 +80,6 @@ export interface Purchase {
   status: 'pending' | 'completed' | 'cancelled';
 }
 
-// Types for creating purchases (what the API expects)
 export interface CreatePurchaseData {
   bookId: string;
   amount: number;
@@ -86,188 +87,129 @@ export interface CreatePurchaseData {
   paymentDetails?: any;
 }
 
-// Configuration des headers par défaut
+// Construction des headers par défaut, avec token JWT si présent
 const getDefaultHeaders = (): HeadersInit => {
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
   const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   return headers;
 };
 
-// Fonction générique pour les appels API
-async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+// Fonction générique pour appeler l'API et gérer les erreurs sans throw non capturé
+export async function apiCall<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    const response = await fetch(url, { ...options, headers: { ...getDefaultHeaders(), ...options.headers } });
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...getDefaultHeaders(),
+        ...options.headers,
+      },
+    });
+
     if (!response.ok) {
+      // On capture le JSON d'erreur et on return un success: false
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      return {
+        success: false,
+        error: errorData.message || `HTTP error! status: ${response.status}`,
+      };
     }
+
     const data = await response.json();
     return { success: true, data };
   } catch (error) {
     console.error('API call failed:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Une erreur est survenue' };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Une erreur est survenue',
+    };
   }
 }
 
-// Service pour les livres
+// Services pour chaque ressource
+
 export const bookService = {
-  getAll: () => apiCall<Book[]>('/books/search'),
+  getAll: () => apiCall<Book[]>('/books'),
   getById: (id: string) => apiCall<Book>(`/books/${id}`),
   search: (query: string) => apiCall<Book[]>(`/books/search?q=${encodeURIComponent(query)}`),
-  create: (bookData: Partial<Book>) => apiCall<Book>('/books', { method: 'POST', body: JSON.stringify(bookData) }),
-  update: (id: string, bookData: Partial<Book>) => apiCall<Book>(`/books/${id}`, { method: 'PUT', body: JSON.stringify(bookData) }),
+  create: (bookData: Partial<Book>) =>
+    apiCall<Book>('/books', { method: 'POST', body: JSON.stringify(bookData) }),
+  update: (id: string, bookData: Partial<Book>) =>
+    apiCall<Book>(`/books/${id}`, { method: 'PUT', body: JSON.stringify(bookData) }),
   delete: (id: string) => apiCall<void>(`/books/${id}`, { method: 'DELETE' }),
 };
 
-// Service pour les auteurs
 export const authorService = {
-  // Récupérer tous les auteurs
-  getAll: () => apiCall<Author[]>('/authors/'),
-
-  // Récupérer un auteur par ID
+  getAll: () => apiCall<Author[]>('/authors'),
   getById: (id: string) => apiCall<Author>(`/authors/${id}`),
-
-  // Rechercher des auteurs
   search: (query: string) => apiCall<Author[]>(`/authors/search?q=${encodeURIComponent(query)}`),
-
-  // Mettre à jour un auteur
-  update: (id: string, authorData: Partial<Author>) => apiCall<Author>(`/authors/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(authorData),
-  }),
-
-  // Supprimer un auteur
-  delete: (id: string) => apiCall<void>(`/authors/${id}`, {
-    method: 'DELETE',
-  }),
+  update: (id: string, authorData: Partial<Author>) =>
+    apiCall<Author>(`/authors/${id}`, { method: 'PUT', body: JSON.stringify(authorData) }),
+  delete: (id: string) => apiCall<void>(`/authors/${id}`, { method: 'DELETE' }),
 };
 
-// Service pour les utilisateurs
 export const userService = {
-  // Récupérer le profil de l'utilisateur connecté
   getProfile: () => apiCall<User>('/users/me'),
-
-  // Mettre à jour le profil
-  updateProfile: (userData: Partial<User>) => apiCall<User>('/users/me', {
-    method: 'PUT',
-    body: JSON.stringify(userData),
-  }),
-
-  // Récupérer un utilisateur par ID (admin seulement)
+  updateProfile: (userData: Partial<User>) =>
+    apiCall<User>('/users/me', { method: 'PUT', body: JSON.stringify(userData) }),
   getById: (id: string) => apiCall<User>(`/users/${id}`),
-
-  // Récupérer tous les utilisateurs (admin seulement)
   getAll: () => apiCall<User[]>('/users'),
-
-  // Supprimer un utilisateur
-  delete: (id: string) => apiCall<void>(`/users/${id}`, {
-    method: 'DELETE',
-  }),
+  delete: (id: string) => apiCall<void>(`/users/${id}`, { method: 'DELETE' }),
 };
 
-// Service pour les événements
 export const eventService = {
-  // Récupérer tous les événements
   getAll: () => apiCall<Event[]>('/events'),
-
-  // Récupérer un événement par ID
   getById: (id: string) => apiCall<Event>(`/events/${id}`),
-
-  // Créer un nouvel événement
-  create: (eventData: Partial<Event>) => apiCall<Event>('/events', {
-    method: 'POST',
-    body: JSON.stringify(eventData),
-  }),
-
-  // Mettre à jour un événement
-  update: (id: string, eventData: Partial<Event>) => apiCall<Event>(`/events/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(eventData),
-  }),
-
-  // Supprimer un événement
-  delete: (id: string) => apiCall<void>(`/events/${id}`, {
-    method: 'DELETE',
-  }),
+  create: (data: Partial<Event>) =>
+    apiCall<Event>('/events', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<Event>) =>
+    apiCall<Event>(`/events/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) => apiCall<void>(`/events/${id}`, { method: 'DELETE' }),
 };
 
-// Service pour les avis
 export const reviewService = {
-  // Récupérer tous les avis
   getAll: () => apiCall<Review[]>('/reviews'),
-
-  // Récupérer un avis par ID
   getById: (id: string) => apiCall<Review>(`/reviews/${id}`),
-
-  // Récupérer les avis d'un livre
   getByBook: (bookId: string) => apiCall<Review[]>(`/reviews/book/${bookId}`),
-
-  // Créer un nouvel avis
-  create: (reviewData: CreateReviewData) => apiCall<Review>('/reviews', {
-    method: 'POST',
-    body: JSON.stringify(reviewData),
-  }),
-
-  // Mettre à jour un avis
-  update: (id: string, reviewData: Partial<Review>) => apiCall<Review>(`/reviews/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(reviewData),
-  }),
-
-  // Supprimer un avis
-  delete: (id: string) => apiCall<void>(`/reviews/${id}`, {
-    method: 'DELETE',
-  }),
+  create: (data: CreateReviewData) =>
+    apiCall<Review>('/reviews', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<Review>) =>
+    apiCall<Review>(`/reviews/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) => apiCall<void>(`/reviews/${id}`, { method: 'DELETE' }),
 };
 
-// Service pour les achats
 export const purchaseService = {
-  // Récupérer tous les achats (admin seulement)
   getAll: () => apiCall<Purchase[]>('/purchases'),
-
-  // Récupérer un achat par ID
   getById: (id: string) => apiCall<Purchase>(`/purchases/${id}`),
-
-  // Récupérer les achats de l'utilisateur connecté
   getUserPurchases: () => apiCall<Purchase[]>('/purchases/user'),
-
-  // Créer un nouvel achat
-  create: (purchaseData: CreatePurchaseData) => apiCall<Purchase>('/purchases', {
-    method: 'POST',
-    body: JSON.stringify(purchaseData),
-  }),
-
-  // Supprimer un achat (admin seulement)
-  delete: (id: string) => apiCall<void>(`/purchases/${id}`, {
-    method: 'DELETE',
-  }),
+  create: (data: CreatePurchaseData) =>
+    apiCall<Purchase>('/purchases', { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: string) => apiCall<void>(`/purchases/${id}`, { method: 'DELETE' }),
 };
 
-// Service d'authentification
 export const authService = {
-  // Connexion
-  login: (credentials: { email: string; password: string }) => apiCall<{ token: string; user: User }>('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-  }),
-
-  // Inscription
-  register: (userData: { email: string; password: string; name: string; role?: string }) => apiCall<{ token: string; user: User }>('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(userData),
-  }),
-
-  // Déconnexion
+  login: (credentials: { email: string; password: string }) =>
+    apiCall<{ token: string; user: User }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    }),
+  register: (userData: { email: string; password: string; name: string; role?: string }) =>
+    apiCall<{ token: string; user: User }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    }),
   logout: () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('authToken');
     }
     return Promise.resolve({ success: true });
   },
-
-  // Vérifier le token
   verifyToken: () => apiCall<User>('/auth/verify'),
 };
 
