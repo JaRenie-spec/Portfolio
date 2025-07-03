@@ -10,22 +10,6 @@ export interface ApiResponse<T> {
 }
 
 // Types pour les entités
-export interface Book {
-  id: string;
-  title: string;
-  author: {
-    id: string;
-    name: string;
-  };
-  rating?: number;
-  price: number;
-  coverImage?: string;
-  genre?: string;
-  description?: string;
-  publishedAt?: string;
-  isbn?: string;
-}
-
 export interface Author {
   id: string;
   pseudo: string;
@@ -33,6 +17,19 @@ export interface Author {
   avatar?: string;
   email?: string;
   books?: Book[];
+}
+
+export interface Book {
+  id: string;
+  title: string;
+  author?: Author;
+  rating?: number;
+  price: number;
+  coverImage?: string;
+  genre?: string;
+  description?: string;
+  publishedAt?: string;
+  isbn?: string;
 }
 
 export interface User {
@@ -91,77 +88,37 @@ export interface CreatePurchaseData {
 
 // Configuration des headers par défaut
 const getDefaultHeaders = (): HeadersInit => {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
-
-  // Ajouter le token d'authentification si disponible
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
   const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
+  if (token) headers.Authorization = `Bearer ${token}`;
   return headers;
 };
 
 // Fonction générique pour les appels API
-async function apiCall<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
+async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        ...getDefaultHeaders(),
-        ...options.headers,
-      },
-    });
-
+    const response = await fetch(url, { ...options, headers: { ...getDefaultHeaders(), ...options.headers } });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
-
     const data = await response.json();
     return { success: true, data };
   } catch (error) {
     console.error('API call failed:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Une erreur est survenue',
-    };
+    return { success: false, error: error instanceof Error ? error.message : 'Une erreur est survenue' };
   }
 }
 
 // Service pour les livres
 export const bookService = {
-  // Récupérer tous les livres
-  getAll: () => apiCall<Book[]>('/books'),
-
-  // Récupérer un livre par ID
+  getAll: () => apiCall<Book[]>('/books/search'),
   getById: (id: string) => apiCall<Book>(`/books/${id}`),
-
-  // Rechercher des livres
   search: (query: string) => apiCall<Book[]>(`/books/search?q=${encodeURIComponent(query)}`),
-
-  // Créer un nouveau livre
-  create: (bookData: Partial<Book>) => apiCall<Book>('/books', {
-    method: 'POST',
-    body: JSON.stringify(bookData),
-  }),
-
-  // Mettre à jour un livre
-  update: (id: string, bookData: Partial<Book>) => apiCall<Book>(`/books/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(bookData),
-  }),
-
-  // Supprimer un livre
-  delete: (id: string) => apiCall<void>(`/books/${id}`, {
-    method: 'DELETE',
-  }),
+  create: (bookData: Partial<Book>) => apiCall<Book>('/books', { method: 'POST', body: JSON.stringify(bookData) }),
+  update: (id: string, bookData: Partial<Book>) => apiCall<Book>(`/books/${id}`, { method: 'PUT', body: JSON.stringify(bookData) }),
+  delete: (id: string) => apiCall<void>(`/books/${id}`, { method: 'DELETE' }),
 };
 
 // Service pour les auteurs
