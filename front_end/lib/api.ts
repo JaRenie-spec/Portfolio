@@ -28,6 +28,7 @@ export interface Book {
   rating?: number;
   price: number;
   coverImage?: string;
+	fileUrl?: string,
   genre?: string;
   description?: string;
   publishedAt?: string;
