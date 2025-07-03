@@ -45,7 +45,7 @@ export interface Event {
   id: string;
   title: string;
   description: string;
-  date: string;
+  dateEvent: string;
   location?: string;
   author?: Author;
   isOnline?: boolean;
@@ -169,30 +169,12 @@ export const userService = {
 
 // Service pour les événements
 export const eventService = {
-  // Récupérer tous les événements
   getAll: () => apiCall<Event[]>('/events'),
-
-  // Récupérer un événement par ID
   getById: (id: string) => apiCall<Event>(`/events/${id}`),
-
-  // Créer un nouvel événement
-  create: (eventData: Partial<Event>) => apiCall<Event>('/events', {
-    method: 'POST',
-    body: JSON.stringify(eventData),
-  }),
-
-  // Mettre à jour un événement
-  update: (id: string, eventData: Partial<Event>) => apiCall<Event>(`/events/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(eventData),
-  }),
-
-  // Supprimer un événement
-  delete: (id: string) => apiCall<void>(`/events/${id}`, {
-    method: 'DELETE',
-  }),
+  create: (data: Partial<Event>) => apiCall<Event>('/events', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<Event>) => apiCall<Event>(`/events/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) => apiCall<void>(`/events/${id}`, { method: 'DELETE' }),
 };
-
 // Service pour les avis
 export const reviewService = {
   // Récupérer tous les avis

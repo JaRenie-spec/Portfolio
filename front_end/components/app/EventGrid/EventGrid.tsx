@@ -60,7 +60,7 @@ export default function EventGrid() {
                         id={event.id}
                         title={event.title}
                         description={event.description}
-                        date={event.date}
+                        dateEvent={event.dateEvent}
                         location={event.location}
                         author={event.author}
                         isOnline={event.isOnline}
