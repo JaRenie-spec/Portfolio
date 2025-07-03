@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthenticatedRequest } from '../middlewares/protect'
-
+import { createAuthor } from '../services/author.service';
 
 const prisma = new PrismaClient();
 /**
@@ -9,22 +9,54 @@ const prisma = new PrismaClient();
  */
 export const findAll: RequestHandler = async (_req, res) => {
   const authors = await prisma.author.findMany({
+    where: { deletedAt: null },
     include: { books: true }
   });
   res.json(authors);
 };
 
 /**
+ * POST /authors
+ */
+export const create: RequestHandler = async (req, res) => {
+  try {
+    const { firstName, lastName, pseudo, email, bio, link } = req.body;
+    const newAuthor = await createAuthor({
+      firstName,
+      lastName,
+      pseudo,
+      email,
+      bio,
+      link,
+      password: 'temp_password', // Sera géré par Keycloak
+    });
+    res.status(201).json(newAuthor);
+  } catch (error) {
+    console.error('Erreur création auteur:', error);
+    res.status(400).json({ error: 'Impossible de créer l\'auteur' });
+  }
+};
+
+/**
  * GET /authors/:id
  */
 export const findOne: RequestHandler = async (req, res) => {
+  console.log('GET /authors/:id called', { params: req.params, headers: req.headers });
   const { id } = req.params;
-  const author = await prisma.author.findUnique({ where: { id } });
-  if (!author) {
-    res.status(404).json({ error: 'Auteur non trouvé' });
-    return;
+  try {
+    const author = await prisma.author.findUnique({
+      where: { id },
+      include: { books: true }
+    });
+    if (!author) {
+      res.status(404).json({ error: 'Auteur non trouvé' });
+      return;
+    }
+    res.json(author);
+  } catch (err) {
+    console.error('Erreur dans findOne:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
-  res.json(author);
 };
 
 /**GET /authors/search

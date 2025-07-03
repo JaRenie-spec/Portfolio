@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Navbar } from '@/components/app/Navbar/Navbar'
 
 export default function EditBookPage() {
   const { id } = useParams()
@@ -75,7 +76,7 @@ export default function EditBookPage() {
   return (
     <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 space-y-6 bg-white rounded shadow">
       {updateError && <p className="text-red-500">{updateError}</p>}
-
+      <Navbar />
       <div>
         <Label htmlFor="title">Titre</Label>
         <Input id="title" value={title} onChange={e => setTitle(e.target.value)} required />

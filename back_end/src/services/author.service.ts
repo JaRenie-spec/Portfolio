@@ -3,6 +3,27 @@ import { CreateAuthorDTO } from "../types";
 
 const prisma = new PrismaClient();
 
+// 🔹 Créer un nouvel auteur
+export const createAuthor = async (data: CreateAuthorDTO) => {
+  try {
+    return await prisma.author.create({
+      data: {
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      include: {
+        books: true,
+        events: true,
+        reviews: true,
+      },
+    });
+  } catch (err) {
+    console.error("Erreur création auteur :", err);
+    throw new Error("Impossible de créer l'auteur.");
+  }
+};
+
 // 🔹 Lister tous les auteurs (avec relations)
 export const getAllAuthors = async () => {
   try {

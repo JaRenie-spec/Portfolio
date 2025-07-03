@@ -39,7 +39,7 @@ export const findOne: RequestHandler = async (req, res) => {
   const { id } = req.params;
   const book = await prisma.book.findUnique({
   where: { id },
-  include: { author: { select: { pseudo: true } } }
+  include: { author: { select: { id: true, pseudo: true, firstName: true, lastName: true } } }
 });
   if (!book) {
     res.status(404).json({ error: 'Livre non trouvé' });
@@ -146,7 +146,7 @@ export const update: RequestHandler = async (req, res) => {
   const isAdmin = roles.includes('admin');
 
   // Récupérer le livre et vérifier existence
-  const book = await prisma.book.findUnique({ where: { id } });
+  const book = await prisma.book.findUnique({ where: { id }, include: { author: true } });
   if (!book) {
     res.status(404).json({ error: 'Livre non trouvé' });
 		return;

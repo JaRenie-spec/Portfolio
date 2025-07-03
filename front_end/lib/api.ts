@@ -14,10 +14,12 @@ export interface ApiResponse<T> {
 // Entités du domaine
 export interface Author {
   id: string;
+  firstName: string;
+  lastName: string;
   pseudo: string;
+  email: string;
   bio?: string;
-  avatar?: string;
-  email?: string;
+  link?: string;
   books?: Book[];
 }
 
@@ -148,6 +150,8 @@ export const bookService = {
 export const authorService = {
   getAll: () => apiCall<Author[]>('/authors'),
   getById: (id: string) => apiCall<Author>(`/authors/${id}`),
+  create: (authorData: Partial<Author>) =>
+    apiCall<Author>('/authors', { method: 'POST', body: JSON.stringify(authorData) }),
   search: (query: string) => apiCall<Author[]>(`/authors/search?q=${encodeURIComponent(query)}`),
   update: (id: string, authorData: Partial<Author>) =>
     apiCall<Author>(`/authors/${id}`, { method: 'PUT', body: JSON.stringify(authorData) }),
