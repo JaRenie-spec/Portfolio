@@ -1,14 +1,39 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Navbar } from '@/components/app/Navbar/Navbar'
 import { Footer } from '@/components/app/Footer/Footer'
 import { SearchBar } from '@/components/app/SearchBar/SearchBar'
 import { Button } from '@/components/ui/button'
 import BookGrid from '@/components/app/BookGrid/BookGrid'
+import type { Book } from '@/lib/api'
 
 export default function Book() {
+  const [books, setBooks] = useState<Book[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchBooks() {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch('/api/books') // adapte cette URL à ton API
+        if (!res.ok) throw new Error('Erreur lors du chargement des livres')
+        const data: Book[] = await res.json()
+        setBooks(data)
+      } catch (err: any) {
+        setError(err.message || 'Erreur inconnue')
+        setBooks(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBooks()
+  }, [])
+
   const handleSearch = (query: string) => {
-    // Rediriger vers la page de recherche avec la requête
     window.location.href = `/search?q=${encodeURIComponent(query)}`
   }
 
@@ -59,7 +84,7 @@ export default function Book() {
 
         <section className="px-6 py-12">
           <div className="max-w-6xl mx-auto">
-            <BookGrid />
+            <BookGrid books={books} loading={loading} error={error} />
 
             <div className="flex justify-center mt-12">
               <div className="flex items-center gap-2">

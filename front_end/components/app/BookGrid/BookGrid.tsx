@@ -1,19 +1,16 @@
 'use client'
 
-import { useEffect } from 'react'
 import Link from 'next/link'
 import BookCard from '../BookCard/BookCard'
 import type { Book } from '@/lib/api'
-import { bookService } from '@/lib/api'
-import { useApi } from '@/lib/hooks/useApi'
 
-export default function BookGrid() {
-  const { data: books, loading, error, execute } = useApi<Book[]>(bookService.getAll)
+interface BookGridProps {
+  books: Book[] | null
+  loading: boolean
+  error: string | null
+}
 
-  useEffect(() => {
-    execute()
-  }, [execute])
-
+export default function BookGrid({ books, loading, error }: BookGridProps) {
   const handleAddToCart = (bookId: string) => {
     console.log(`Add book ${bookId} to cart`)
   }
@@ -40,46 +37,41 @@ export default function BookGrid() {
     return (
       <div className="text-center py-12">
         <div className="text-red-500 mb-4">
-          {/* icône d'erreur */}
+          {/* Icône d'erreur (tu peux en rajouter ici si tu veux) */}
         </div>
         <h3 className="text-lg font-semibold mb-2">Erreur de chargement</h3>
         <p className="text-muted-foreground mb-4">{error}</p>
-        <button
-          onClick={() => execute()}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-        >
-          Réessayer
-        </button>
+      </div>
+    )
+  }
+
+  if (!books || books.length === 0) {
+    return (
+      <div className="col-span-full text-center py-12 text-muted-foreground">
+        <div className="mb-4">
+          {/* Icône info */}
+        </div>
+        <h3 className="text-lg font-semibold mb-2">Aucun livre trouvé</h3>
+        <p>Il semble qu'il n'y ait pas encore de livres disponibles.</p>
       </div>
     )
   }
 
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {books && books.length > 0 ? (
-        books.map((book) => (
-          <Link key={book.id} href={`/books/${book.id}`} className="block">
-            <BookCard
-              title={book.title}
-              author={book.author?.pseudo ?? 'Auteur inconnu'}
-              rating={book.rating || 0}
-              price={book.price}
-              coverColor={getRandomCoverColor()}
-              onAddToCart={() => handleAddToCart(book.id)}
-              onFavorite={() => handleFavorite(book.id)}
-            />
-          </Link>
-        ))
-      ) : (
-        <div className="col-span-full text-center py-12">
-          {/* message "Aucun livre trouvé" */}
-          <div className="text-muted-foreground mb-4">
-            {/* icône info */}
-          </div>
-          <h3 className="text-lg font-semibold mb-2">Aucun livre trouvé</h3>
-          <p className="text-muted-foreground">Il semble qu'il n'y ait pas encore de livres disponibles.</p>
-        </div>
-      )}
+      {books.map((book) => (
+        <Link key={book.id} href={`/books/${book.id}`} className="block">
+          <BookCard
+            title={book.title}
+            author={book.author?.pseudo ?? 'Auteur inconnu'}
+            rating={book.rating || 0}
+            price={book.price}
+            coverColor={getRandomCoverColor()}
+            onAddToCart={() => handleAddToCart(book.id)}
+            onFavorite={() => handleFavorite(book.id)}
+          />
+        </Link>
+      ))}
     </div>
   )
 }

@@ -7,22 +7,8 @@ import { Footer } from "@/components/app/Footer/Footer"
 import { SearchBar } from "@/components/app/SearchBar/SearchBar"
 import { Button } from "@/components/ui/button"
 import BookGrid from "@/components/app/BookGrid/BookGrid"
-import { bookService } from '@/lib/api'
+import { bookService, Book } from '@/lib/api'
 import { useApi } from '@/lib/hooks/useApi'
-
-// Type pour un livre
-interface Book {
-    id: string;
-    title: string;
-    author: {
-        name: string;
-    };
-    rating?: number;
-    price: number;
-    coverImage?: string;
-    genre?: string;
-    description?: string;
-}
 
 export default function SearchPage() {
     const searchParams = useSearchParams()
@@ -34,10 +20,8 @@ export default function SearchPage() {
     );
 
     useEffect(() => {
-        if (searchQuery) {
-            execute();
-        }
-    }, [searchQuery, execute]);
+        execute();
+    }, [searchQuery]);
 
     const handleSearch = (newQuery: string) => {
         setSearchQuery(newQuery);
@@ -95,7 +79,6 @@ export default function SearchPage() {
 
                 <section className="px-6 py-12">
                     <div className="max-w-6xl mx-auto">
-                        {/* Affichage des résultats */}
                         {loading ? (
                             <div className="text-center py-12">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -119,7 +102,6 @@ export default function SearchPage() {
                             </div>
                         ) : (
                             <>
-                                {/* Résumé des résultats */}
                                 {searchQuery && (
                                     <div className="mb-8">
                                         <p className="text-muted-foreground">
@@ -131,8 +113,8 @@ export default function SearchPage() {
                                     </div>
                                 )}
 
-                                {/* Grille de livres */}
-                                <BookGrid />
+                                {/* Passe les livres récupérés à BookGrid */}
+                                <BookGrid books={books} loading={loading} error={error} />
 
                                 {/* Pagination */}
                                 {books && books.length > 0 && (
@@ -152,7 +134,6 @@ export default function SearchPage() {
                     </div>
                 </section>
 
-                {/* Section de suggestion si aucun résultat */}
                 {!loading && !error && books && books.length === 0 && searchQuery && (
                     <section className="px-6 py-16 bg-muted/30">
                         <div className="max-w-4xl mx-auto text-center">

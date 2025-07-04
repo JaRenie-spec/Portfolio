@@ -6,6 +6,7 @@ import BookCarouselHorizontal from "@/components/app/BookCarouselHorizontal/Book
 import EventCarouselVertical from "@/components/app/EventCarouselVertical/EventCarouselVertical";
 import RecommendedCarousel from "@/components/app/RecommendedCarousel/RecommendedCarousel";
 import { CategoryGrid } from "@/components/app/CategoryGrid/CategoryGrid";
+import BookSearch from "./search/BookSearch";
 
 export default function Home() {
     return (

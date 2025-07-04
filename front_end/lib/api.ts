@@ -139,7 +139,7 @@ export async function apiCall<T>(
 export const bookService = {
   getAll: () => apiCall<Book[]>('/books'),
   getById: (id: string) => apiCall<Book>(`/books/${id}`),
-  search: (query: string) => apiCall<Book[]>(`/books/search?q=${encodeURIComponent(query)}`),
+  search: (query: string) => apiCall<Book[]>(`/books/search?title=${encodeURIComponent(query)}`),
   create: (bookData: Partial<Book>) =>
     apiCall<Book>('/books', { method: 'POST', body: JSON.stringify(bookData) }),
   update: (id: string, bookData: Partial<Book>) =>
