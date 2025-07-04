@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Navbar } from '@/components/app/Navbar/Navbar'
+import { Footer } from '@/components/app/Footer/Footer'
 
 export default function EditAuthorPage() {
     const { id } = useParams()
@@ -69,57 +70,89 @@ export default function EditAuthorPage() {
         router.push(`/author/${id}`)
     }
 
-    if (loading) return <p>Chargement…</p>
-    if (error) return <p className="text-red-500 text-center mt-6">Erreur : {error}</p>
+    if (loading) return (
+        <div className="flex flex-col min-h-screen">
+            <header className="fixed top-0 left-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b h-16 flex items-center">
+                <Navbar />
+            </header>
+            <main className="flex flex-1 flex-col pt-16">
+                <div className="flex items-center justify-center min-h-screen">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+            </main>
+            <Footer />
+        </div>
+    )
+    if (error) return (
+        <div className="flex flex-col min-h-screen">
+            <header className="fixed top-0 left-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b h-16 flex items-center">
+                <Navbar />
+            </header>
+            <main className="flex flex-1 flex-col pt-16">
+                <div className="flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                        <h3 className="text-lg font-semibold mb-2">Erreur de chargement</h3>
+                        <p className="text-muted-foreground mb-4">{error}</p>
+                    </div>
+                </div>
+            </main>
+            <Footer />
+        </div>
+    )
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 space-y-6 bg-white rounded shadow">
-            {updateError && <p className="text-red-500">{updateError}</p>}
-            <Navbar />
-
-            <div>
-                <Label htmlFor="firstName">Prénom</Label>
-                <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required />
-            </div>
-
-            <div>
-                <Label htmlFor="lastName">Nom</Label>
-                <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required />
-            </div>
-
-            <div>
-                <Label htmlFor="pseudo">Pseudo</Label>
-                <Input id="pseudo" value={pseudo} onChange={e => setPseudo(e.target.value)} required />
-            </div>
-
-            <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
-            </div>
-
-            <div>
-                <Label htmlFor="bio">Biographie</Label>
-                <Textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} />
-            </div>
-
-            <div>
-                <Label htmlFor="link">Lien personnel</Label>
-                <Input
-                    id="link"
-                    type="url"
-                    value={link}
-                    onChange={e => setLink(e.target.value)}
-                />
-            </div>
-
-            <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => router.back()}>
-                    Annuler
-                </Button>
-                <Button type="submit" disabled={updating}>
-                    {updating ? 'Enregistrement…' : 'Enregistrer'}
-                </Button>
-            </div>
-        </form>
+        <div className="flex flex-col min-h-screen">
+            <header className="fixed top-0 left-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b h-16 flex items-center">
+                <Navbar />
+            </header>
+            <main className="flex flex-1 flex-col pt-16">
+                <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-background px-6 py-12 min-h-[calc(100vh-128px)]">
+                    <div className="max-w-xl mx-auto">
+                        <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded shadow p-8">
+                            {updateError && <p className="text-red-500">{updateError}</p>}
+                            <h1 className="text-2xl font-bold text-center mb-6">Modifier le profil d'auteur</h1>
+                            <div>
+                                <Label htmlFor="firstName">Prénom</Label>
+                                <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required />
+                            </div>
+                            <div>
+                                <Label htmlFor="lastName">Nom</Label>
+                                <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required />
+                            </div>
+                            <div>
+                                <Label htmlFor="pseudo">Pseudo</Label>
+                                <Input id="pseudo" value={pseudo} onChange={e => setPseudo(e.target.value)} required />
+                            </div>
+                            <div>
+                                <Label htmlFor="email">Email</Label>
+                                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+                            </div>
+                            <div>
+                                <Label htmlFor="bio">Biographie</Label>
+                                <Textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} />
+                            </div>
+                            <div>
+                                <Label htmlFor="link">Lien personnel</Label>
+                                <Input
+                                    id="link"
+                                    type="url"
+                                    value={link}
+                                    onChange={e => setLink(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-2">
+                                <Button variant="outline" onClick={() => router.back()} type="button">
+                                    Annuler
+                                </Button>
+                                <Button type="submit" disabled={updating}>
+                                    {updating ? 'Enregistrement…' : 'Enregistrer'}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </main>
+            <Footer />
+        </div>
     )
 }
