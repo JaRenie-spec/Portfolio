@@ -9,7 +9,6 @@ import {
   create as bookCreate,
   update as bookUpdate,
   remove as bookRemove,
-  findByPublicInfo
 } from '../controllers/book.controller';
 
 const router = Router();
