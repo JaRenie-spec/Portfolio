@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { keycloakService } from '@/lib/keycloak'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { ErrorMessage } from '@/components/ui/ErrorMessage'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -34,8 +33,16 @@ export default function AuthCallbackPage() {
         // Traiter le callback Keycloak
         await keycloakService.handleCallback(code, state)
 
-        // Rediriger vers la page d'accueil ou la page demandée
-        const redirectTo = searchParams.get('redirect_uri') || '/'
+        // Extraire la page d'origine depuis le state
+        let redirectTo = '/'
+        try {
+          const stateObj = JSON.parse(decodeURIComponent(state))
+          if (stateObj.appRedirect && typeof stateObj.appRedirect === 'string') {
+            redirectTo = stateObj.appRedirect
+          }
+        } catch (e) {
+          // fallback: redirectTo = '/'
+        }
         router.push(redirectTo)
       } catch (err) {
         console.error('Erreur lors du traitement du callback:', err)
@@ -64,12 +71,12 @@ export default function AuthCallbackPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="max-w-md w-full">
-          <ErrorMessage
-            error={error}
-            title="Erreur de connexion"
-            description="Une erreur s'est produite lors de la connexion avec Keycloak."
-            onRetry={() => window.location.reload()}
-          />
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Erreur de connexion</strong>
+            <span className="block">{error}</span>
+            <span className="block text-sm text-muted-foreground mt-2">Une erreur s'est produite lors de la connexion avec Keycloak.</span>
+            <button className="mt-4 underline text-primary" onClick={() => window.location.reload()}>Réessayer</button>
+          </div>
         </div>
       </div>
     )

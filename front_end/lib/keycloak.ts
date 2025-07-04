@@ -43,14 +43,20 @@ class KeycloakService {
   }
 
   // Rediriger vers la page de connexion Keycloak
-  login() {
-    const redirectUri = window.location.origin;
+  login(redirectTo?: string) {
+    // Par défaut, on redirige vers la page courante
+    const redirectUri = window.location.origin + '/auth/callback';
+    const stateObj = {
+      appRedirect: redirectTo || window.location.pathname + window.location.search + window.location.hash,
+      nonce: this.generateState(),
+    };
+    const state = encodeURIComponent(JSON.stringify(stateObj));
     const loginUrl = `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth?` +
       `client_id=${KEYCLOAK_CLIENT_ID}&` +
       `redirect_uri=${redirectUri}&` +
       `response_type=code&` +
       `scope=openid email profile&` +
-      `state=${this.generateState()}`;
+      `state=${state}`;
 
     window.location.href = loginUrl;
   }
@@ -79,7 +85,6 @@ class KeycloakService {
 
       return this.user;
     } catch (error) {
-      console.error('Erreur lors de la gestion du callback:', error);
       throw error;
     }
   }
@@ -87,7 +92,7 @@ class KeycloakService {
   // Échanger le code d'autorisation contre un token
   private async exchangeCodeForToken(code: string): Promise<KeycloakTokenResponse> {
     const tokenUrl = `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`;
-
+    const redirectUri = window.location.origin + '/auth/callback';
     const response = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
@@ -97,7 +102,7 @@ class KeycloakService {
         grant_type: 'authorization_code',
         client_id: KEYCLOAK_CLIENT_ID,
         code: code,
-        redirect_uri: window.location.origin,
+        redirect_uri: redirectUri,
       }),
     });
 
