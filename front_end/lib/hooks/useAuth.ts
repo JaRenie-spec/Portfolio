@@ -7,7 +7,7 @@ export interface UseAuthReturn {
   user: KeycloakUser | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: () => void
+  login: (redirectTo?: string) => void
   logout: () => void
   refreshToken: () => Promise<void>
 }
@@ -32,7 +32,6 @@ export function useAuth(): UseAuthReturn {
           refreshToken()
         }
       } catch (error) {
-        console.error("Erreur initialisation auth:", error)
         setUser(null)
         setIsAuthenticated(false)
       } finally {
@@ -43,8 +42,8 @@ export function useAuth(): UseAuthReturn {
   }, [])
 
   // Connexion
-  const login = useCallback(() => {
-    keycloakService.login()
+  const login = useCallback((redirectTo?: string) => {
+    keycloakService.login(redirectTo)
   }, [])
 
   // Déconnexion
@@ -74,7 +73,6 @@ export function useAuth(): UseAuthReturn {
         localStorage.setItem('authToken', token)
       }
     } catch (error) {
-      console.error('Erreur rafraîchissement token:', error)
       setUser(null)
       setIsAuthenticated(false)
     } finally {
@@ -91,7 +89,6 @@ export function useAuth(): UseAuthReturn {
       const error = params.get('error')
 
       if (error) {
-        console.error("Erreur Keycloak:", error)
         setIsLoading(false)
         return
       }
@@ -111,7 +108,6 @@ export function useAuth(): UseAuthReturn {
             window.history.replaceState({}, document.title, window.location.pathname)
           })
           .catch((err) => {
-            console.error('Erreur callback Keycloak:', err)
             setUser(null)
             setIsAuthenticated(false)
           })
