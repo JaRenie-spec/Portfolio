@@ -82,20 +82,33 @@ export const create: RequestHandler = async (req, res) => {
  * GET /books/search
  */
 export const findByPublicInfo: RequestHandler = async (req, res) => {
-  const { title, isbn, pseudo, firstName, lastName } = req.query;
+  // On récupère q (la query string qu'on envoie depuis le front)
+  const { q, isbn, pseudo, firstName, lastName } = req.query;
 
   try {
     const books = await prisma.book.findMany({
       where: {
         AND: [
-          title ? { title: { contains: String(title), mode: 'insensitive' } } : {},
-          isbn ? { isbn: { contains: String(isbn), mode: 'insensitive' } } : {},
+          // si q est présent, on filtre sur le titre
+          q
+            ? { title: { contains: String(q), mode: 'insensitive' } }
+            : {},
+          // si isbn est fourni séparément, on filtre aussi isbn
+          isbn
+            ? { isbn: { contains: String(isbn), mode: 'insensitive' } }
+            : {},
           {
             author: {
               AND: [
-                pseudo ? { pseudo: { contains: String(pseudo), mode: 'insensitive' } } : {},
-                firstName ? { firstName: { contains: String(firstName), mode: 'insensitive' } } : {},
-                lastName ? { lastName: { contains: String(lastName), mode: 'insensitive' } } : {},
+                pseudo
+                  ? { pseudo: { contains: String(pseudo), mode: 'insensitive' } }
+                  : {},
+                firstName
+                  ? { firstName: { contains: String(firstName), mode: 'insensitive' } }
+                  : {},
+                lastName
+                  ? { lastName: { contains: String(lastName), mode: 'insensitive' } }
+                  : {},
               ],
             },
           },
@@ -103,11 +116,7 @@ export const findByPublicInfo: RequestHandler = async (req, res) => {
       },
       include: {
         author: {
-          select: {
-            pseudo: true,
-            firstName: true,
-            lastName: true,
-          },
+          select: { pseudo: true, firstName: true, lastName: true },
         },
       },
     });
@@ -117,20 +126,7 @@ export const findByPublicInfo: RequestHandler = async (req, res) => {
       return;
     }
 
-    const publicBooks = (books as BookWithAuthor[]).map((book) => ({
-      title: book.title,
-      isbn: book.isbn,
-      price: book.price,
-      rating: book.rating,
-      fileUrl: book.fileUrl,
-      author: {
-        pseudo: book.author?.pseudo,
-        firstName: book.author?.firstName,
-        lastName: book.author?.lastName,
-      },
-    }));
-
-    res.json(publicBooks);
+    res.json(books);
   } catch (error) {
     console.error('Erreur recherche livres :', error);
     res.status(500).json({ error: 'Erreur lors de la recherche des livres' });
