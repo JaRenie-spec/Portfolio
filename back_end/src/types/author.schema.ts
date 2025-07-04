@@ -7,6 +7,7 @@ export const createAuthorSchema = z.object({
   email: z.string().email("Email invalide"),
   password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
   bio: z.string().max(2_000).optional(),
+  link: z.string().optional(),
   createdByAdminId: z.string().optional(),
 });
 
