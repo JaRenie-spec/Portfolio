@@ -33,21 +33,28 @@ export const create: RequestHandler = async (req, res) => {
   const { sub, roles } = (req as AuthenticatedRequest).user;
   const isAdmin = roles.includes('admin');
 
-  // un auteur ne peut pas créer pour un autre auteur
+  // Un auteur non-admin ne peut pas créer pour un autre auteur
   if (!isAdmin && bodyAuthorId && bodyAuthorId !== sub) {
     res.status(403).json({ error: 'Impossible de créer un événement pour un autre auteur' });
-		return;
+    return;
   }
 
-  const finalAuthorId = isAdmin
-    ? bodyAuthorId || sub
-    : sub;
+  const finalAuthorId = isAdmin ? bodyAuthorId || sub : sub;
 
-  const newEvent = await prisma.event.create({
-    data: { title, description, dateEvent, authorId: finalAuthorId }
-  });
-
-  res.status(201).json(newEvent);
+  try {
+    const newEvent = await prisma.event.create({
+      data: {
+        title,
+        description,
+        dateEvent: new Date(dateEvent),
+        authorId: finalAuthorId
+      }
+    });
+    res.status(201).json(newEvent);
+  } catch (err: any) {
+    console.error('Erreur création événement:', err);
+    res.status(500).json({ error: 'Erreur lors de la création de l\'événement.' });
+  }
 };
 
 /**
@@ -59,39 +66,44 @@ export const update: RequestHandler = async (req, res) => {
   const { sub, roles } = (req as AuthenticatedRequest).user;
   const isAdmin = roles.includes('admin');
 
-  // 1️⃣ récupérer l’événement
+  // Vérifier existence
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) {
     res.status(404).json({ error: 'Événement non trouvé' });
-		return;
+    return;
   }
 
-  // 2️⃣ si pas admin, vérifier proprio
+  // Permissions
   if (!isAdmin && event.authorId !== sub) {
     res.status(403).json({ error: 'Impossible de modifier cet événement' });
-		return;
+    return;
   }
-
-  // 3️⃣ un auteur ne peut pas réassigner à un autre authorId
   if (!isAdmin && bodyAuthorId && bodyAuthorId !== sub) {
-    res.status(403).json({ error: 'Impossible de changer l’auteur de l’événement' });
-		return;
+    res.status(403).json({ error: 'Impossible de changer l\'auteur de l\'événement' });
+    return;
   }
 
-  const finalAuthorId = isAdmin
-    ? bodyAuthorId || event.authorId
-    : sub;
+  const finalAuthorId = isAdmin ? bodyAuthorId || event.authorId : sub;
 
-  const updated = await prisma.event.update({
-    where: { id },
-    data: { title, description, dateEvent, authorId: finalAuthorId }
-  });
-
-  res.json(updated);
+  try {
+    const updated = await prisma.event.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        dateEvent: new Date(dateEvent),
+        authorId: finalAuthorId
+      }
+    });
+    res.json(updated);
+  } catch (err: any) {
+    console.error('Erreur mise à jour événement :', err);
+    res.status(500).json({ error: 'Impossible de mettre à jour l\'événement.' });
+  }
 };
 
 /**
- * DELETE /events/:id uniquement l'auteur
+ * DELETE /events/:id
  */
 export const remove: RequestHandler = async (req, res) => {
   const { id } = req.params;
@@ -101,14 +113,18 @@ export const remove: RequestHandler = async (req, res) => {
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) {
     res.status(404).json({ error: 'Événement non trouvé' });
-		return;
+    return;
   }
-
   if (!isAdmin && event.authorId !== sub) {
     res.status(403).json({ error: 'Impossible de supprimer cet événement' });
-		return;
+    return;
   }
 
-  await prisma.event.delete({ where: { id } });
-  res.sendStatus(204);
+  try {
+    await prisma.event.delete({ where: { id } });
+    res.sendStatus(204);
+  } catch (err: any) {
+    console.error('Erreur suppression événement :', err);
+    res.status(500).json({ error: 'Impossible de supprimer l\'événement.' });
+  }
 };

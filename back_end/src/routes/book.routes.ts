@@ -3,6 +3,7 @@ import { protect } from '../middlewares/protect';
 import { requireRole } from '../middlewares/requireRole';
 import { validateBook } from '../middlewares/book.validator';
 import {
+	findByPublicInfo,
   findAll as bookFindAll,
   findOne as bookFindOne,
   create as bookCreate,

@@ -19,19 +19,19 @@ export default function BookGrid({ books, loading, error }: BookGridProps) {
     console.log(`Add book ${bookId} to favorites`)
   }
 
-  if (loading) {
-    return (
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {[...Array(8)].map((_, index) => (
-          <div key={index} className="animate-pulse">
-            <div className="bg-gray-200 rounded-lg h-64 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-          </div>
-        ))}
-      </div>
-    )
-  }
+    if (loading) {
+        return (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, index) => (
+                    <div key={index} className="animate-pulse">
+                        <div className="bg-gray-200 rounded-lg h-64 mb-4"></div>
+                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                ))}
+            </div>
+        )
+    }
 
   if (error) {
     return (
@@ -77,15 +77,15 @@ export default function BookGrid({ books, loading, error }: BookGridProps) {
 }
 
 function getRandomCoverColor(): string {
-  const colors = [
-    "from-blue-100 to-purple-100",
-    "from-green-100 to-blue-100",
-    "from-pink-100 to-red-100",
-    "from-yellow-100 to-orange-100",
-    "from-purple-100 to-indigo-100",
-    "from-emerald-100 to-teal-100",
-    "from-cyan-100 to-blue-100",
-    "from-indigo-100 to-purple-100",
-  ]
-  return colors[Math.floor(Math.random() * colors.length)]
+    const colors = [
+        "from-blue-100 to-purple-100",
+        "from-green-100 to-blue-100",
+        "from-pink-100 to-red-100",
+        "from-yellow-100 to-orange-100",
+        "from-purple-100 to-indigo-100",
+        "from-emerald-100 to-teal-100",
+        "from-cyan-100 to-blue-100",
+        "from-indigo-100 to-purple-100",
+    ]
+    return colors[Math.floor(Math.random() * colors.length)]
 }

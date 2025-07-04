@@ -143,7 +143,7 @@ export default function AuthorPublicProfilePage() {
             </main>
 
             {/* Actions en bas */}
-            <div className="border-t pt-6 pb-8">
+            <section className="border-t pt-6 pb-8">
                 <div className="max-w-3xl mx-auto flex justify-between px-6">
                     <Button variant="outline" size="sm" onClick={() => router.back()}>
                         ← Retour
@@ -161,7 +161,7 @@ export default function AuthorPublicProfilePage() {
                         </div>
                     )}
                 </div>
-            </div>
+            </section>
 
             <Footer />
         </div>

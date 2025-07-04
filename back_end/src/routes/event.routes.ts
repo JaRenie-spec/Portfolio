@@ -13,7 +13,7 @@ import {
 const router = Router();
 
 router.get('/', eventFindAll);
-router.get('/:id', protect, requireRole(['admin']), eventFindOne);
+router.get('/:id', eventFindOne);
 
 router.post('/', protect, requireRole(['author','admin']), validateEvent, eventCreate);
 
